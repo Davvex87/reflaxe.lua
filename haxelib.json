@@ -1,0 +1,17 @@
+{
+  "name": "reflaxe.Lua",
+  "version": "0.0.1",
+  "description": "A cleaner implementation of the Lua target for Haxe",
+  "url": "http://example.com",
+  "tags": [],
+  "dependencies": {
+    "reflaxe": "git:https://github.com/SomeRanDev/reflaxe"
+  },
+  "classPath": "src/",
+  "releasenote": "Initial release.",
+  "reflaxe": {
+    "name": "Lua",
+    "abbv": "rlua",
+    "stdPaths": ["std", "std/rlua/_std"]
+  }
+}

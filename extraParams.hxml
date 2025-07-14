@@ -1,0 +1,4 @@
+-D rlua
+-D Lua
+--macro nullSafety("rluacompiler")
+--macro rluacompiler.CompilerInit.Start()
