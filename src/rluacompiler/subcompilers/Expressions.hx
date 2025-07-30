@@ -87,11 +87,11 @@ class Expressions extends SubCompiler {
 				switch(op)
 				{
 					case OpAssignOp(op):
-						var opr = compileOperatorImpl(op);
+						var opr = compileOperatorImpl(op, e1, e2);
 						return '${exprImpl(e1)} = ${exprImpl(e1)} ${opr} ${exprImpl(e2)}';
 					case _:
 				}
-				var opr = compileOperatorImpl(op);
+				var opr = compileOperatorImpl(op, e1, e2);
 				'${exprImpl(e1)} ${opr} ${exprImpl(e2)}';
 
 			/**
@@ -455,16 +455,90 @@ class Expressions extends SubCompiler {
 		return result;
 	}
 
-	public function compileOperatorImpl(op:Binop)
+	public function isStringType(t:Type)
+		return switch(t)
+		{
+			case TMono(t):
+				isStringType(t.get());
+			case TFun(args, ret):
+				isStringType(ret);
+			case TAbstract(t1, params):
+				var impl = t1.get().impl;
+				if (impl == null)
+					return false;
+				impl.get().name == "String";
+			case TInst(t, params):
+				t.get().name == "String";
+			case _:
+				false;
+		}
+
+	public function isStringExpr(e:TypedExprDef):Bool
+		return switch(e)
+		{
+			case TConst(c):
+				switch(c)
+				{
+					case TString(s):
+						true;
+					case _:
+						false;
+				}
+			case TLocal(v):
+				isStringType(v.t);
+			case TArray(e1, e2):
+				isStringExpr(e1.expr);
+			case TBinop(op, e1, e2):
+				isStringExpr(e1.expr) || isStringExpr(e2.expr);
+			case TField(e, fa):
+				switch(fa)
+				{
+					case FInstance(c, params, cf):
+						isStringType(cf.get().type);
+					case FStatic(c, cf):
+						isStringType(cf.get().type);
+					case FAnon(cf):
+						isStringType(cf.get().type);
+					case FClosure(c, cf):
+						isStringType(cf.get().type);
+					case FEnum(e, ef):
+						isStringType(ef.type);
+					case _:
+						false;
+				}
+			case TParenthesis(e):
+				isStringExpr(e.expr);
+			case TCall(e, el):
+				isStringExpr(e.expr);
+			case TBlock(el):
+				isStringExpr(el[el.length-1].expr);
+			case TCast(e, m):
+				switch(m)
+				{
+					case TClassDecl(c):
+						c.get().name == "String";
+					case _:
+						false;
+				}
+			case TReturn(e):
+				isStringExpr(e.expr);
+			case _:
+				false;
+		}
+
+	public function compileOperatorImpl(op:Binop, e1:TypedExpr, e2:TypedExpr)
 	{
 		return switch(op)
 		{
-			case OpAdd: "+";
+			case OpAdd: 
+				if (isStringExpr(e1.expr) || isStringExpr(e2.expr))
+					return "..";
+				"+";
 			case OpMult: "*";
 			case OpDiv: "/";
 			case OpSub: "-";
 			case OpAssign: "=";
-			case OpAssignOp(op): compileOperatorImpl(op) + "=";
+			case OpAssignOp(op): compileOperatorImpl(op, e1, e2) + "=";
 			case OpEq: "==";
 			case OpNotEq: "~=";
 			case OpGt: ">";
