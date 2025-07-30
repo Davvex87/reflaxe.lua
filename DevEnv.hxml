@@ -5,4 +5,6 @@
 --macro nullSafety("rluacompiler")
 -lib reflaxe
 -cp src
+-cp std
+-cp std/rlua/_std
 rluacompiler

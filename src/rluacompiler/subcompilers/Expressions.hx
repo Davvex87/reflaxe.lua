@@ -1,5 +1,6 @@
 package rluacompiler.subcompilers;
 
+import reflaxe.ReflectCompiler;
 import haxe.macro.Expr.Binop;
 #if (macro || rlua_runtime)
 
@@ -65,14 +66,28 @@ class Expressions extends SubCompiler {
 				v.name;
 
 			case TArray(e1, e2):
-				'${exprImpl(e1)}[${exprImpl(e2)}]';
+				var num = switch(e2.expr)
+				{
+					case TConst(c):
+						switch(c)
+						{
+							case TInt(i):
+								i;
+							case _:
+								null;
+						}
+					case _:
+						null;
+				}
+				if (num != null)
+					return '${exprImpl(e1)}[${num+1}]';
+				'${exprImpl(e1)}[${exprImpl(e2)}+1]';
 
 			case TBinop(op, e1, e2):
 				switch(op)
 				{
 					case OpAssignOp(op):
 						var opr = compileOperatorImpl(op);
-						Sys.println(opr);
 						return '${exprImpl(e1)} = ${exprImpl(e1)} ${opr} ${exprImpl(e2)}';
 					case _:
 				}
@@ -94,6 +109,9 @@ class Expressions extends SubCompiler {
 						'${exprImpl(e)}${accessor}${field.name}';
 
 					case FStatic(c, cf):
+						if (c.get().name.length == 0)
+							return cf.get().name;
+
 						'${c.get().name}.${cf.get().name}';
 					case FAnon(cf):
 						'${exprImpl(e)}.${cf.get().name}';
@@ -140,13 +158,39 @@ class Expressions extends SubCompiler {
 				An array declaration `[el]`.
 			**/
 			case TArrayDecl(el):
+				el.map(e -> trace(e.expr));
 				var elements = el.map(e -> exprImpl(e));
+				trace(elements);
 				'{${elements.join(", ")}}';
 
 			/**
 				A call `e(el)`.
 			**/
 			case TCall(e, el):
+				var code = main.compileNativeFunctionCodeMeta(e, el);
+				if (code != null)
+					return code;
+
+				switch(e.expr)
+				{
+					case TIdent(s):
+						switch(s)
+						{
+							case "__lua__":
+								return parseUntypedSyntaxCode(el);
+							case _:
+						}
+
+					case TField(e, fa):
+						switch(fa) {
+							case FStatic(c, cf):
+								if (c.get().name == "Syntax" && cf.get().name == "code")
+									return parseUntypedSyntaxCode(el);
+							case _:
+						}
+					case _:
+				}
+
 				var args = el.map(arg -> exprImpl(arg));
 				'${exprImpl(e)}(${args.join(", ")})';
 
@@ -154,6 +198,10 @@ class Expressions extends SubCompiler {
 				A constructor call `new c<params>(el)`.
 			**/
 			case TNew(c, params, el):
+				var code = main.compileNativeFunctionCodeMeta(expr, el);
+				if (code != null)
+					return code;
+
 				var args = el.map(arg -> exprImpl(arg));
 				'${c.get().name}.new(${args.join(", ")})';
 
@@ -431,6 +479,27 @@ class Expressions extends SubCompiler {
 			default:
 				throw new NotImplementedException('$op has not yet been defined to be compiled');
 		};
+	}
+
+	public function parseUntypedSyntaxCode(el:Array<TypedExpr>):Null<String>
+	{
+		if (el.length == 0)
+			return "";
+
+		var codeTemplate = switch (el[0].expr)
+		{
+			case TConst(TString(s)): s;
+			default:
+				throw new haxe.exceptions.ArgumentException("First argument to Syntax.code must be a string literal");
+		}
+
+		var args = el.slice(1).map(arg -> compileExpressionImpl(arg, 1));
+
+		var result = StringTools.replace(codeTemplate, '{this}', "self");
+		for (i in 0...args.length)
+			result = StringTools.replace(result, '{$i}', args[i]);
+
+		return result;
 	}
 }
 

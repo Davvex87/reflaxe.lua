@@ -35,9 +35,20 @@ class Fields extends SubCompiler {
 		output += 'function ${clsName}${isDotMethod(func) ? "." : ":"}${funcName}(${argsStr})\n';
 		
 		// Compile the function body with proper indentation
-		var bodyCode = main.expressionsSubCompiler.compileExpressionImpl(func.expr, 0);
-		output += bodyCode/*indentLines(bodyCode, 0)*/ + '\n';
+		var bodyCode = "";
 		
+		if (func.field.meta.has(":functionCode"))
+		{
+			var code = switch (func.field.meta.extract(":functionCode")[0].params[0].expr) {
+    			case EConst(CString(s)): s;
+    			case _: throw "Expected a string literal";
+			};
+			bodyCode = code;
+		}
+		else
+			bodyCode = main.expressionsSubCompiler.compileExpressionImpl(func.expr, 0);
+
+		output += bodyCode + '\n';
 		output += 'end\n';
 
 		return output;
