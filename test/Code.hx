@@ -32,6 +32,10 @@ class TestClass {
 		otherArray.pop();
 
 		Lua.print(otherArray.concat(arr));
+
+		var e:Dynamic = untyped getStr();
+		Lua.print(e + 20); // "print(e + 20)"
+		Lua.print(cast(e, String) + 20); // "print(e .. 20)"
 	}
 
 	public function increment(i:Int) {
