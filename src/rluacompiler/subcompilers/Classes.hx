@@ -9,6 +9,7 @@ import reflaxe.DirectToStringCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.EnumOptionData;
+import Lambda;
 
 class Classes extends SubCompiler {
 
@@ -23,15 +24,8 @@ class Classes extends SubCompiler {
 		output += '${classType.name}.__index = ${classType.name}\n';
 		output += "\n";
 
-		var hasInstField = {
-			for (v in varFields)
-				if (!v.isStatic)
-					true;
-			for (v in funcFields)
-				if (!v.isStatic)
-					true;
-			false;
-		};
+		var hasInstField = Lambda.exists(varFields, v -> !v.isStatic) || Lambda.exists(funcFields, v -> !v.isStatic);
+
 		if (hasInstField)
 		{
 			output += 'function ${classType.name}.new(...)\n';
