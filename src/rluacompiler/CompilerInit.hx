@@ -14,7 +14,7 @@ class CompilerInit {
 			expressionPreprocessors: [
 				SanitizeEverythingIsExpression({
 					convertIncrementAndDecrementOperators: true,
-					convertNullCoalescing: true,
+					convertNullCoalescing: false, // true
 					setUninitializedVariablesToNull: true
 				}),
 				PreventRepeatVariables({}),
@@ -23,6 +23,7 @@ class CompilerInit {
 				RemoveUnnecessaryBlocks,
 				RemoveReassignedVariableDeclarations,
 				RemoveLocalVariableAliases,
+				RemoveTemporaryVariables(AllOneUseVariables),
 				RemoveTemporaryVariables(AllTempVariables),
 				MarkUnusedVariables,
 			],
@@ -32,7 +33,9 @@ class CompilerInit {
 			reservedVarNames: [],
 			targetCodeInjectionName: "__lua__",
 			manualDCE: false,
-			trackUsedTypes: true
+			trackUsedTypes: true,
+
+			ignoreTypes: []
 		};
 
 	public static var compiler:Compiler;

@@ -158,9 +158,7 @@ class Expressions extends SubCompiler {
 				An array declaration `[el]`.
 			**/
 			case TArrayDecl(el):
-				el.map(e -> trace(e.expr));
 				var elements = el.map(e -> exprImpl(e));
-				trace(elements);
 				'{${elements.join(", ")}}';
 
 			/**
@@ -511,7 +509,7 @@ class Expressions extends SubCompiler {
 			case TCall(e, el):
 				isStringExpr(e.expr);
 			case TBlock(el):
-				isStringExpr(el[el.length-1].expr);
+				el.length > 0 && isStringExpr(el[el.length-1].expr);
 			case TCast(e, m):
 				switch(m)
 				{
@@ -521,7 +519,7 @@ class Expressions extends SubCompiler {
 						false;
 				}
 			case TReturn(e):
-				isStringExpr(e.expr);
+				e != null && isStringExpr(e.expr);
 			case _:
 				false;
 		}

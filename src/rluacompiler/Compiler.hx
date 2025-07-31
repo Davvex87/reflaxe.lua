@@ -72,7 +72,6 @@ class Compiler extends DirectToStringCompiler {
 	**/
 	public function compileExpressionImpl(expr: TypedExpr, topLevel: Bool): Null<String>
 	{
-		trace(topLevel);
 		return expressionsSubCompiler.compileExpressionImpl(expr, 0);
 	}
 }
