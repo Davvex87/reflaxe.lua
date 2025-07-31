@@ -65,7 +65,7 @@ function main() {
 	trace(c.increment);
 
 	var myStruct:{one:Int, two:Int, three:String} = {
-		one: 1,
+		one: ~untyped num(),
 		two: (0+4-3)*2,
 		three: "3",
 	}

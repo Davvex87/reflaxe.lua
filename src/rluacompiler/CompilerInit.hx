@@ -1,11 +1,11 @@
 package rluacompiler;
 
-import reflaxe.BaseCompiler;
-import reflaxe.BaseCompiler.BaseCompilerOptions;
 #if (macro || rlua_runtime)
-
 import reflaxe.ReflectCompiler;
 import reflaxe.preprocessors.ExpressionPreprocessor;
+import rluacompiler.preprocessors.implementations.ConvertBitwiseOperators;
+import reflaxe.BaseCompiler;
+import reflaxe.BaseCompiler.BaseCompilerOptions;
 
 class CompilerInit {
 
@@ -26,6 +26,17 @@ class CompilerInit {
 				RemoveTemporaryVariables(AllOneUseVariables),
 				RemoveTemporaryVariables(AllTempVariables),
 				MarkUnusedVariables,
+
+				Custom(new ConvertBitwiseOperators(#if lua_bit32 "bit32.{op}" #else "bit.{op}" #end,
+				{
+					opAnd: "band",
+					opOr: "bor",
+					opXor: "bxor",
+					opShl: "lshift",
+					opShr: "arshift",
+					opUShr: "rshift",
+					opNegBits: "bnot"
+				}))
 			],
 			fileOutputExtension: ".lua",
 			outputDirDefineName: "lua-output",

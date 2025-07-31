@@ -1,7 +1,5 @@
 package rluacompiler.subcompilers;
 
-import reflaxe.ReflectCompiler;
-import haxe.macro.Expr.Binop;
 #if (macro || rlua_runtime)
 
 import haxe.exceptions.NotImplementedException;
@@ -13,6 +11,8 @@ import reflaxe.DirectToStringCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.EnumOptionData;
+import reflaxe.ReflectCompiler;
+import haxe.macro.Expr;
 
 class Expressions extends SubCompiler {
 	
@@ -238,9 +238,8 @@ class Expressions extends SubCompiler {
 					case OpNeg:
 						'-${exprImpl(e)}';
 						
-					case OpNegBits:
-						var exprStr = exprImpl(e);
-						'bit.bnot(${exprStr})';
+					case OpNegBits: // Moved to src/rluacompiler/preprocessors/implementations/ConvertBitwiseOperators.hx
+						'~${exprImpl(e)}';
 						
 					default:
 						throw new NotImplementedException('Unary operator ${op} not implemented');
@@ -548,6 +547,16 @@ class Expressions extends SubCompiler {
 			case OpMod: "%";
 			case OpIn: "in";
 			case OpNullCoal: "or";
+
+			// Moved to src/rluacompiler/preprocessors/implementations/ConvertBitwiseOperators.hx
+			//  Lua 5.1 does not have bitwise operators, patch using the bit library instead
+			//  still keeping this here for other subsets which do support bitwise operators like Lua 5.3
+			case OpAnd: "&";
+			case OpOr: "|";
+			case OpXor: "^";
+			case OpShl: "<<";
+			case OpShr: ">>";
+			case OpUShr: ">>";
 			default:
 				throw new NotImplementedException('$op has not yet been defined to be compiled');
 		};
