@@ -44,6 +44,11 @@ class Expressions extends SubCompiler {
 						Std.string(s);
 
 					case TString(s):
+						s = StringTools.replace(s, "\\", "\\\\");
+						s = StringTools.replace(s, "\"", "\\\"");
+						s = StringTools.replace(s, "\t", "\\t");
+						s = StringTools.replace(s, "\n", "\\n");
+						s = StringTools.replace(s, "\r", "\\r");
 						'"$s"';
 
 					case TBool(b):
