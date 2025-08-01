@@ -19,17 +19,25 @@ class Classes extends SubCompiler {
 			return null;
 
 		var output = "";
+		var superClassName:Null<String> = classType.superClass?.t?.get()?.name;
 
-		output += '${classType.name} = setmetatable({}, {\n\t__tostring = function(self)\n\t\treturn "Class<${classType.name}>"\n\tend\n})\n';
+		output += '${classType.name} = setmetatable({}, {\n\t__tostring = function(self)\n\t\treturn "Class<${classType.name}>"\n\tend;\n';
+
+		if (superClassName != null)
+			output += '\t__index = $superClassName;\n';
+
+		output += '})\n';
 		output += '${classType.name}.__index = ${classType.name}\n';
-		output += "\n";
+
+		if (superClassName != null)
+			output += '${classType.name}.super = ${superClassName}\n';
 
 		var hasInstField = Lambda.exists(varFields, v -> !v.isStatic) || Lambda.exists(funcFields, v -> !v.isStatic);
 
 		if (hasInstField)
 		{
 			output += 'function ${classType.name}.new(...)\n';
-			output += '\tlocal self = setmetatable({}, ${classType.name})\n\tself:__constructor(...)\n\treturn self\n';
+			output += '\tlocal self = setmetatable({__tostring = function(self) return "${classType.name}" end}, ${classType.name})\n\tself:__constructor(...)\n\treturn self\n';
 			output += 'end\n';
 		}
 
