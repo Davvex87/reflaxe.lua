@@ -22,6 +22,14 @@ class Fields extends SubCompiler {
 		return lines.map(line -> line.length > 0 ? indent(depth) + line : line).join("\n");
 	}
 
+	public function compileStaticImpl(varf: ClassVarData): Null<String>
+	{
+		var output = '${varf.classType.name}.${varf.field.name}';
+		if (varf.field.expr() != null)
+			output += ' = ${main.expressionsSubCompiler.compileExpressionImpl(varf.field.expr(), 0)}';
+		return output + "\n";
+	}
+
 	public function compileFuncImpl(func: ClassFuncData): Null<String>
 	{
 		var output = "";

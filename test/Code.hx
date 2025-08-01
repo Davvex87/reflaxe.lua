@@ -81,24 +81,36 @@ class SomeClass extends OtherClass
 {
 	public function new(a1:Int, a2:String) {super(a1 * 2, a2);}
 
+	static var n:Float = 0.3;
+	static var myNumber(get, set):Int;
+
 	override public function one(a:Float)
 	{
 		untyped print("BEFORE");
-		super.one(a * 5);
+		super.one(a * myNumber);
 		two(true);
 	}
 
 	override public function three()
 	{
 		trace("THREE WAS NOT CALLED");
+		myNumber = 4;
 	}
 
+
+	static function set_myNumber(value:Int):Int
+		return untyped n += value;
+
+	static function get_myNumber():Int
+		return untyped math.floor(n);
 }
 
 class OtherClass
 {
 	static var e:Int = -10;
 	public var did:Bool = false;
+
+	public var didWeDoIt(get, never):Bool;
 
 	public static function test()
 	{
@@ -120,7 +132,7 @@ class OtherClass
 	{
 		static var counter = 0;
 		did = b;
-		untyped print(b);
+		untyped print(didWeDoIt);
 		counter++;
 		e += counter;
 	}
@@ -129,4 +141,7 @@ class OtherClass
 	{
 		trace("I WAS CALLED!");
 	}
+
+	function get_didWeDoIt():Bool
+		return did;
 }

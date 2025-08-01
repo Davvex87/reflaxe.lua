@@ -34,6 +34,12 @@ class Classes extends SubCompiler {
 
 		var hasInstField = Lambda.exists(varFields, v -> !v.isStatic) || Lambda.exists(funcFields, v -> !v.isStatic);
 
+		for (varf in varFields)
+		{
+			if (varf.isStatic)
+				output += main.fieldsSubCompiler.compileStaticImpl(varf);
+		}
+
 		if (hasInstField)
 		{
 			output += 'function ${classType.name}.new(...)\n';
