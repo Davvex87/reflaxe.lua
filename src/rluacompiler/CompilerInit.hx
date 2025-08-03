@@ -3,7 +3,7 @@ package rluacompiler;
 #if (macro || rlua_runtime)
 import reflaxe.ReflectCompiler;
 import reflaxe.preprocessors.ExpressionPreprocessor;
-import rluacompiler.preprocessors.implementations.ConvertBitwiseOperators;
+import rluacompiler.preprocessors.implementations.*;
 import reflaxe.BaseCompiler;
 import reflaxe.BaseCompiler.BaseCompilerOptions;
 
@@ -36,7 +36,8 @@ class CompilerInit {
 					opShr: "arshift",
 					opUShr: "rshift",
 					opNegBits: "bnot"
-				}))
+				})),
+				Custom(new Lua51LoopContinuePatch())
 			],
 			fileOutputExtension: ".lua",
 			outputDirDefineName: "lua-output",

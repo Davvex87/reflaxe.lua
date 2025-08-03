@@ -20,6 +20,11 @@ class TestClass {
 		untyped print(arr[2]); 			// 5
 		arr[3] = 10;
 
+		for (num in arr)
+		{
+			untyped print(num);
+		}
+
 		var otherArray:Array<Int> = new Array<Int>();
 		otherArray.push(8);
 		otherArray.pop();
@@ -30,8 +35,47 @@ class TestClass {
 		untyped print(e + 20); 					// "print(e + 20)"
 		untyped print(cast(e, String) + 20); 	// "print(e .. 20)"
 
+		/*
 		for (num in arr)
 			untyped print(num * 2);
+		*/
+
+		var n = 10;
+		while (n > 2)
+		{
+			n-=1;
+			if (n == 5)
+				continue;
+		}
+
+		while (n > 2)
+		{
+			n-=1;
+			if (n == 5)
+			{
+				if (n > 4)
+				{	
+					n-=3;
+					continue;
+				}
+			}
+		}
+
+		while (n > 2)
+		{
+			n-=1;
+			if (n > 1)
+				break;
+		}
+
+		while (n > 2)
+		{
+			n-=1;
+			if (n == 5)
+				break;
+			else if(n == 8)
+				continue;
+		}
 	}
 
 	public function increment(i:Int) {
