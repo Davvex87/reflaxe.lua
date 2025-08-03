@@ -1,5 +1,6 @@
 package rluacompiler.preprocessors.implementations;
 
+import haxe.macro.TypedExprTools;
 #if (macro || rlua_runtime)
 import reflaxe.BaseCompiler;
 import reflaxe.data.ClassFuncData;
@@ -47,15 +48,19 @@ class ConvertBitwiseOperators extends BasePreprocessor
 					var opFnCall = getOpProxy(switch(op) {case OpAssignOp(op2): op2; case _: null;});
 					if (opFnCall != null)
 					{
-						expr.expr = TBinop(OpAssign, e1, {
-							expr: TCall({
-								expr: TIdent(StringTools.replace(inlineMethod, "{op}", opFnCall)),
+						return {
+							expr: TBinop(OpAssign, e1, {
+								expr: TCall({
+									expr: TIdent(StringTools.replace(inlineMethod, "{op}", opFnCall)),
+									pos: expr.pos,
+									t: expr.t
+								}, [e1, e2]),
 								pos: expr.pos,
 								t: expr.t
-							}, [e1, e2]),
+							}),
 							pos: expr.pos,
 							t: expr.t
-						});
+						}
 					}
 					return expr;
 				}
@@ -63,95 +68,36 @@ class ConvertBitwiseOperators extends BasePreprocessor
 				var opFnCall = getOpProxy(op);
 				if (opFnCall != null)
 				{
-					expr.expr = TCall({
-						expr: TIdent(StringTools.replace(inlineMethod, "{op}", opFnCall)),
+					return {
+						expr: TCall({
+							expr: TIdent(StringTools.replace(inlineMethod, "{op}", opFnCall)),
+							pos: expr.pos,
+							t: expr.t
+						}, [e1, e2]),
 						pos: expr.pos,
 						t: expr.t
-					}, [e1, e2]);
+					}
 				}
+				return expr;
 
 			case TUnop(op, postFix, e):
 				e = processExpr(e);
 				if (op.match(OpNegBits))
-					expr.expr = TCall({ //TODO: Maybe use as TField instead of a TIdent here?
-						expr: TIdent(StringTools.replace(inlineMethod, "{op}", options.opNegBits)),
+					return {
+						expr: TCall({ //TODO: Maybe use as TField instead of a TIdent here?
+							expr: TIdent(StringTools.replace(inlineMethod, "{op}", options.opNegBits)),
+							pos: expr.pos,
+							t: expr.t
+						}, [e]),
 						pos: expr.pos,
 						t: expr.t
-					}, [e]);
+					}
 
-			case TBlock(el):
-				for (e in el)
-					e = processExpr(e);
+				return expr;
 
-			case TArray(e1, e2):
-				e1 = processExpr(e1);
-				e2 = processExpr(e2);
-
-			case TParenthesis(e):
-				e = processExpr(e);
-
-			case TObjectDecl(fields):
-				for (f in fields)
-					f.expr = processExpr(f.expr);
-
-			case TArrayDecl(el):
-				for (e in el)
-					e = processExpr(e);
-
-			case TCall(e, el):
-				for (e in el)
-					e = processExpr(e);
-
-			case TNew(c, params, el):
-				for (e in el)
-					e = processExpr(e);
-				
-			case TFunction(tfunc):
-				tfunc.expr = processExpr(tfunc.expr);
-
-			case TVar(v, expr):
-				if (expr != null) expr = processExpr(expr);
-
-			case TFor(v, e1, e2):
-				e1 = processExpr(e1);
-				e2 = processExpr(e2);
-
-			case TIf(econd, eif, eelse):
-				econd = processExpr(econd);
-				eif = processExpr(eif);
-				if (eelse != null) eelse = processExpr(eelse);
-
-			case TWhile(econd, e, normalWhile):
-				econd = processExpr(econd);
-				e = processExpr(e);
-
-			case TSwitch(e, cases, edef):
-				e = processExpr(e);
-				for (c in cases) c.expr = processExpr(c.expr);
-				if (edef != null) edef = processExpr(edef);
-
-			case TTry(e, catches):
-				e = processExpr(e);
-				for (c in catches) c.expr = processExpr(c.expr);
-
-			case TReturn(e):
-				if (e != null) e = processExpr(e);
-
-			case TThrow(e):
-				e = processExpr(e);
-
-			case TCast(e, m):
-				e = processExpr(e);
-
-			case TEnumParameter(e1, ef, index):
-				e1 = processExpr(e1);
-
-			case TEnumIndex(e1):
-				e1 = processExpr(e1);
-
-			case _:
+			default:
+				return TypedExprTools.map(expr, processExpr);
 		}
-		return expr;
 	}
 }
 
