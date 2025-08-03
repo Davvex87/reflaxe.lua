@@ -10,6 +10,8 @@ import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.EnumOptionData;
 
+using StringTools;
+
 class Fields extends SubCompiler {
 	
 	private function indent(depth: Int): String {
@@ -40,7 +42,7 @@ class Fields extends SubCompiler {
 		for (arg in func.args)
 			argsStr += arg.getName() + (func.args.indexOf(arg) < func.args.length - 1 ? ", " : "");
 		
-		output += 'function ${clsName}${isDotMethod(func) ? "." : ":"}${funcName}(${argsStr})\n';
+		output += 'function ${clsName}${isDotMethod(func) ? "." : ":"}${funcName}(${argsStr})\n\t';
 		
 		// Compile the function body with proper indentation
 		var bodyCode = "";
@@ -56,7 +58,7 @@ class Fields extends SubCompiler {
 		else
 			bodyCode = main.expressionsSubCompiler.compileExpressionImpl(func.expr, 0);
 
-		output += bodyCode + '\n';
+		output += bodyCode.replace("\n", "\n\t") + '\n';
 		output += 'end\n';
 
 		return output;

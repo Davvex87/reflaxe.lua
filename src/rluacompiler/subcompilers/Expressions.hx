@@ -2,37 +2,24 @@ package rluacompiler.subcompilers;
 
 #if (macro || rlua_runtime)
 
-import haxe.exceptions.NotImplementedException;
-
-import haxe.macro.Type;
-
-// Import Reflaxe types
 import reflaxe.DirectToStringCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.EnumOptionData;
 import reflaxe.ReflectCompiler;
 import haxe.macro.Expr;
+import rluacompiler.utils.CodeBuf;
+import haxe.macro.Type;
+import haxe.macro.TypedExprTools;
 
-class Expressions extends SubCompiler {
-	
-	private function indent(depth: Int): String {
-		return [for (_ in 0...depth) "\t"].join("");
-	}
-	
-	private var _tabs:Int = 1;
-	private function indentLines(str: String): String {
-		if (_tabs == 0) return str;
-		var lines = str.split("\n");
-		return lines.map(line -> line.length > 0 ? indent(_tabs) + line : line).join("\n");
-	}
-
+class Expressions extends SubCompiler
+{
 	public function compileExpressionImpl(expr: TypedExpr, depth: Int, ?previous:TypedExpr): Null<String>
 	{
 		function exprImpl(e:TypedExpr, depthOffset:Int = 0): Null<String>
 			return compileExpressionImpl(e, depth + depthOffset, expr);
 
-		var result:Null<String> = switch(expr.expr)
+		return switch(expr.expr)
 		{
 			case TConst(c):
 				switch(c)
@@ -68,7 +55,7 @@ class Expressions extends SubCompiler {
 				}
 
 			case TLocal(v):
-				v.name;
+				 v.name;
 
 			case TArray(e1, e2):
 				var num = switch(e2.expr)
@@ -85,39 +72,36 @@ class Expressions extends SubCompiler {
 						null;
 				}
 				if (num != null)
-					return '${exprImpl(e1)}[${num+1}]';
-				'${exprImpl(e1)}[${exprImpl(e2)}+1]';
+					'${exprImpl(e1)}[${num+1}]';
+				else
+					'${exprImpl(e1)}[${exprImpl(e2)}+1]';
 
 			case TBinop(op, e1, e2):
 				switch(op)
 				{
 					case OpAssignOp(op):
-						var opr = compileOperatorImpl(op, e1, e2);
-						return '${exprImpl(e1)} = ${exprImpl(e1)} ${opr} ${exprImpl(e2)}';
-					case _:
+						'${exprImpl(e1)} = ${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
+					default:
+						'${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
 				}
-				var opr = compileOperatorImpl(op, e1, e2);
-				'${exprImpl(e1)} ${opr} ${exprImpl(e2)}';
 
-			/**
-				Field access on `e` according to `fa`.
-			**/
 			case TField(e, fa):
-				switch(fa) {
+				switch(fa)
+				{
 					case FInstance(c, params, cf):
 						var field = cf.get();
-						var accessor = switch(field.kind) {
+						var accessor = switch(field.kind)
+						{
 							case FMethod(_): ":";
 							case FVar(_, _): ".";
 							default: ".";
 						}
 						'${exprImpl(e)}${accessor}${field.name}';
-
 					case FStatic(c, cf):
 						if (c.get().name.length == 0)
-							return cf.get().name;
-
-						'${c.get().name}.${cf.get().name}';
+							cf.get().name;
+						else
+							'${c.get().name}.${cf.get().name}';
 					case FAnon(cf):
 						'${exprImpl(e)}.${cf.get().name}';
 					case FDynamic(s):
@@ -128,11 +112,9 @@ class Expressions extends SubCompiler {
 						'${e.get().name}.${ef.name}';
 				}
 
-			/**
-				Reference to a module type `m`.
-			**/
 			case TTypeExpr(m):
-				switch(m) {
+				switch(m)
+				{
 					case TClassDecl(c):
 						c.get().name;
 					case TEnumDecl(e):
@@ -143,37 +125,27 @@ class Expressions extends SubCompiler {
 						a.get().name;
 				}
 
-			/**
-				Parentheses `(e)`.
-			**/
 			case TParenthesis(e):
 				'(${exprImpl(e)})';
 
-			/**
-				An object declaration.
-			**/
 			case TObjectDecl(fields):
-				var fieldStrs = fields.map(f -> '${f.name} = ${exprImpl(f.expr)}');
-				_tabs++;
-				var res = '{\n${indentLines(fieldStrs.join(",\n"))}\n\t}';
-				_tabs--;
-				res;
+				var buff:CodeBuf = new CodeBuf();
 
-			/**
-				An array declaration `[el]`.
-			**/
+				var fieldStrs = fields.map(f -> '${f.name} = ${exprImpl(f.expr)}');
+				buff += '{${buff.enter}';
+				buff += fieldStrs.join(",\n");
+				buff += '${buff.leave}}';
+				buff;
+
 			case TArrayDecl(el):
 				var elements = el.map(e -> exprImpl(e));
 				'{${elements.join(", ")}}';
 
-			/**
-				A call `e(el)`.
-			**/
 			case TCall(e, el):
 				var code = main.compileNativeFunctionCodeMeta(e, el);
 				if (code != null)
 					return code;
-
+				
 				switch(e.expr)
 				{
 					case TIdent(s):
@@ -192,14 +164,11 @@ class Expressions extends SubCompiler {
 							case _:
 						}
 					case _:
-				}
+				};
 
 				var args = el.map(arg -> exprImpl(arg));
 				'${exprImpl(e)}(${args.join(", ")})';
 
-			/**
-				A constructor call `new c<params>(el)`.
-			**/
 			case TNew(c, params, el):
 				var code = main.compileNativeFunctionCodeMeta(expr, el);
 				if (code != null)
@@ -208,17 +177,6 @@ class Expressions extends SubCompiler {
 				var args = el.map(arg -> exprImpl(arg));
 				'${c.get().name}.new(${args.join(", ")})';
 
-			/**
-				An unary operator `op` on `e`:
-
-				* e++ (op = OpIncrement, postFix = true)
-				* e-- (op = OpDecrement, postFix = true)
-				* ++e (op = OpIncrement, postFix = false)
-				* --e (op = OpDecrement, postFix = false)
-				* -e (op = OpNeg, postFix = false)
-				* !e (op = OpNot, postFix = false)
-				* ~e (op = OpNegBits, postFix = false)
-			**/
 			case TUnop(op, postFix, e):
 				switch(op) {
 					case OpIncrement:
@@ -247,32 +205,21 @@ class Expressions extends SubCompiler {
 						'~${exprImpl(e)}';
 						
 					default:
-						throw new NotImplementedException('Unary operator ${op} not implemented');
+						throw 'Unary operator ${op} not implemented';
 				}
 
-			/**
-				A function declaration.
-			**/
 			case TFunction(tfunc):
 				var args = tfunc.args.map(arg -> arg.v.name);
-				var body = indentLines(exprImpl(tfunc.expr, 1));
-				'function(${args.join(", ")})\n${body}\n${indent(depth)}end';
+				var body = exprImpl(tfunc.expr, 1);
+				'function(${args.join(", ")})\n${body}\nend';
 
-			/**
-				A variable declaration `var v` or `var v = expr`.
-			**/
 			case TVar(v, expr):
-				if (expr != null) {
+				if (expr != null)
 					'local ${v.name} = ${exprImpl(expr)}';
-				} else {
+				else
 					'local ${v.name}';
-				}
 
-			/**
-				A block declaration `{el}`.
-			**/
 			case TBlock(el):
-				//_tabs++;
 				var alreadyHasBlock = previous != null && switch(previous.expr)
 				{
 					case TBlock(_): true;
@@ -287,175 +234,204 @@ class Expressions extends SubCompiler {
 				
 				var statements = el.map(e -> {
 					var compiled = exprImpl(e, alreadyHasBlock ? 0 : 1);
-					return alreadyHasBlock ? compiled : indent(depth + 1) + compiled;
+					return compiled;
+					//return alreadyHasBlock ? compiled : indent(depth + 1) + compiled;
 				});
-				//_tabs--;
 				
 				if (statements.length < 1) return "";
 
-				var res = "";
+				var buff:CodeBuf = new CodeBuf();
 
 				if (depth == 0 || alreadyHasBlock)
-					res = statements.join('\n');
+					buff += statements.join('\n');
 				else
-					res = 'do\n${statements.join('\n')}\n${indent(_tabs)}end';
+				{
+					//buff += 'do\n${statements.join('\n')}\nend';
+					buff += 'do${buff.enter}';
+					buff += statements.join('\n');
+					buff += '${buff.leave}end';
+				}
 
-				return res;
+				buff;
 
-			/**
-				A `for` expression.
-			**/
 			case TFor(v, e1, e2):
-				var body = indentLines(exprImpl(e2, 1));
-				'for ${v.name} in ${exprImpl(e1)} do\n${body}\n${indent(depth)}end';
+				var buff:CodeBuf = new CodeBuf();
 
-			/**
-				An `if(econd) eif` or `if(econd) eif else eelse` expression.
-			**/
+				var body = exprImpl(e2, 1);
+				//'for ${v.name} in ${exprImpl(e1)} do\n${body}\nend';
+				buff += 'for ${v.name} in ${exprImpl(e1)} do${buff.enter}';
+				buff += body;
+				buff += '${buff.leave}end';
+				buff;
+
 			case TIf(econd, eif, eelse):
-				_tabs++;
-				var ifBody = indentLines(exprImpl(eif, 1));
-				var result = 'if ${exprImpl(econd)} then\n${ifBody}';
-				if (eelse != null) {
-					var elseBody = indentLines(exprImpl(eelse, 1));
-					_tabs--;
-					result += '\n${indent(depth)}else\n${elseBody}';
-				}
-				_tabs++;
-				var result1 = result + '\n${indent(depth)}end';
-				_tabs--;
-				result1;
+				var buff:CodeBuf = new CodeBuf();
 
-			/**
-				Represents a `while` expression.
-				When `normalWhile` is `true` it is `while (...)`.
-				When `normalWhile` is `false` it is `do {...} while (...)`.
-			**/
+				buff += 'if ${exprImpl(econd)} then${buff.enter}';
+				buff += exprImpl(eif, 1);
+
+				if (eelse != null && !isEmptyBlock(eelse))
+				{
+					//TODO: remove that extra new line if the expr after the else is another if
+					buff += '${buff.leave}else';
+					buff += '${buff.enter}';
+					buff += exprImpl(eelse, 1);
+				}
+
+				buff += '${buff.leave}end';
+				buff;
+
 			case TWhile(econd, e, normalWhile):
-				var body = indentLines(exprImpl(e, 1));
-				if (normalWhile) {
-					'while ${exprImpl(econd)} do\n${body}\n${indent(depth)}end';
-				} else {
-					'repeat\n${body}\n${indent(depth)}until not (${exprImpl(econd)})';
+				var buff:CodeBuf = new CodeBuf();
+
+				var body = exprImpl(e, 1);
+				if (normalWhile)
+				{
+					buff += 'while ${exprImpl(econd)} do${buff.enter}';
+					buff += body;
+					buff += '${buff.leave}end';
+				}
+				else
+				{
+					buff += 'repeat${buff.enter}';
+					buff += body;
+					buff += '${buff.leave}until not (${exprImpl(econd)})';
 				}
 
-			/**
-				Represents a `switch` expression with related cases and an optional
-				`default` case if edef != null.
-			**/
+				buff;
+
 			case TSwitch(e, cases, edef):
 				// Lua doesn't have switch, so we'll compile to if-elseif chain
+				var buff:CodeBuf = new CodeBuf();
+
 				var switchVar = exprImpl(e);
 				var result = "";
 				var first = true;
 				
-				for (case_ in cases) {
-					_tabs++;
-					var conditions = case_.values.map(v -> '${switchVar} == ${exprImpl(v)}');
+				for (c in cases)
+				{
+					var conditions = c.values.map(v -> '${switchVar} == ${exprImpl(v)}');
 					var condStr = conditions.join(' or ');
-					var caseBody = indentLines(exprImpl(case_.expr, 1));
+					var caseBody = exprImpl(c.expr, 1);
 					
-					if (first) {
-						result += 'if ${condStr} then\n${caseBody}';
+					if (first)
+					{
+						buff += 'if ${condStr} then${buff.enter}';
+						buff += caseBody;
 						first = false;
-					} else {
-						result += '\n${indent(depth)}elseif ${condStr} then\n${caseBody}';
 					}
-					_tabs--;
+					else
+					{
+						buff += '${buff.leave}elseif ${condStr}';
+						buff += ' then${buff.enter}';
+						buff += caseBody;
+					}
 				}
 				
-				if (edef != null) {
-					var defaultBody = indentLines(exprImpl(edef, 1));
-					result += '\n${indent(depth)}else\n${defaultBody}';
+				if (edef != null && !isEmptyBlock(edef))
+				{
+					buff += '${buff.leave}else${buff.enter}';
+					buff += exprImpl(edef, 1);
 				}
 				
-				result + '\n${indent(depth)}end';
+				buff += '${buff.leave}end';
+				buff;
 
-			/**
-				Represents a `try`-expression with related catches.
-			**/
 			case TTry(e, catches):
 				// Lua doesn't have try-catch, we'll use pcall
-				var tryBody = exprImpl(e);
-				var result = 'local success, result = pcall(function() return ${tryBody} end)';
+				var buff:CodeBuf = new CodeBuf();
+
+				var hasReturn = getReturnExpr(e) != null;
+
+				buff += 'local success, result = pcall(function()${buff.enter}';
+				buff += exprImpl(e);
+				buff += '${buff.leave}end)\n';
 				
-				if (catches.length > 0) {
-					result += '\n${indent(depth)}if not success then';
-					for (catch_ in catches) {
-						var catchBody = indentLines(exprImpl(catch_.expr, 1));
-						result += '\n${indent(depth + 1)}local ${catch_.v.name} = result';
-						result += '\n${catchBody}';
+				if (catches.length > 0)
+				{
+					buff += 'if not success then${buff.enter}';
+					for (c in catches)
+					{
+						var catchBody = exprImpl(c.expr, 1);
+						buff += 'local ${c.v.name} = result\n';
+						buff += '${catchBody}';
 					}
-					result += '\n${indent(depth)}else\n${indent(depth + 1)}return result\n${indent(depth)}end';
+					if (hasReturn)
+					{
+						buff += '${buff.leave}else';
+						buff += '${buff.enter}return result';
+					}
+					buff += '${buff.leave}end';
 				}
 				
-				result;
+				buff;
 
-			/**
-				A `return` or `return e` expression.
-			**/
 			case TReturn(e):
-				if (e != null) {
+				if (e != null)
 					'return ${exprImpl(e)}';
-				} else {
+				else
 					'return';
-				}
 
-			/**
-				A `break` expression.
-			**/
 			case TBreak:
 				'break';
 
-			/**
-				A `continue` expression.
-			**/
 			case TContinue:
 				'goto continue'; // Lua 5.2+ has goto
 
-			/**
-				A `throw e` expression.
-			**/
 			case TThrow(e):
 				'error(${exprImpl(e)})';
 
-			/**
-				A `cast e` or `cast (e, m)` expression.
-			**/
 			case TCast(e, m):
 				// In Lua, casting is usually just returning the value
 				exprImpl(e);
 
-			/**
-				A `@m e1` expression.
-			**/
 			case TMeta(m, e1):
 				// Metadata is usually ignored in compilation
 				exprImpl(e1);
 
-			/**
-				Access to an enum parameter (generated by the pattern matcher).
-			**/
 			case TEnumParameter(e1, ef, index):
 				'${exprImpl(e1)}[${index + 1}]'; // Lua arrays are 1-indexed
 
-			/**
-				Access to an enum index (generated by the pattern matcher).
-			**/
 			case TEnumIndex(e1):
 				'${exprImpl(e1)}.index';
 
-			/**
-				An unknown identifier.
-			**/
 			case TIdent(s):
 				s;
 
 			default:
 				null;//throw new NotImplementedException('${expr.expr} has not yet been defined to be compiled');
 		}
-		return result;
 	}
+
+	private var _lastRetExpr:Null<TypedExpr> = null;
+	public function getReturnExpr(expr:TypedExpr):TypedExpr
+	{
+		_lastRetExpr = null;
+		TypedExprTools.iter(expr, _iterExpr);
+		return _lastRetExpr;
+	}
+
+	private function _iterExpr(expr:TypedExpr):Void
+	{
+		switch(expr.expr)
+		{
+			case TReturn(e):
+				_lastRetExpr = expr;
+			case TFunction(tfunc):
+			default:
+				TypedExprTools.iter(expr, getReturnExpr);
+		}
+	}
+
+	public function isEmptyBlock(expr:TypedExpr)
+		return switch(expr.expr)
+		{
+			case TBlock(el):
+				trace(el.length == 0);
+				el.length == 0;
+			case _:
+				false;
+		}
 
 	public function isStringType(t:Type)
 		return switch(t)
@@ -563,7 +539,7 @@ class Expressions extends SubCompiler {
 			case OpShr: ">>";
 			case OpUShr: ">>";
 			default:
-				throw new NotImplementedException('$op has not yet been defined to be compiled');
+				throw '$op has not yet been defined to be compiled';
 		};
 	}
 

@@ -76,6 +76,16 @@ class TestClass {
 			else if(n == 8)
 				continue;
 		}
+
+		{
+			untyped print(1);
+			{
+				untyped print(2);
+				{
+					untyped print(3);
+				}
+			}
+		}
 	}
 
 	public function increment(i:Int) {
@@ -86,11 +96,31 @@ class TestClass {
 			case _:
 		}
 		untyped print(field);
-		untyped __lua__("local testStr = 'aaaa'\n\tprint(testStr, {0})", field);
+		untyped __lua__("local testStr = 'aaaa'\nprint(testStr, {0})", field);
 	}
 
 	public static function getNumber():Int
+	{
+		try 
+		{
+			untyped getValue();
+		}
+		catch(e:Dynamic)
+		{
+			trace("Error:", e);
+		}
+
+		try 
+		{
+			var num:Int = untyped getValue();
+			return num;
+		}
+		catch(e:Dynamic)
+		{
+			trace("Error:", e);
+		}
 		return 3;
+	}
 }
 
 function main()
