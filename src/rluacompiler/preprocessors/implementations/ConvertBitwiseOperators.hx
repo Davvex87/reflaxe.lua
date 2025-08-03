@@ -1,8 +1,6 @@
 package rluacompiler.preprocessors.implementations;
 
 #if (macro || rlua_runtime)
-import haxe.macro.Type.TypedExpr;
-import haxe.macro.Type.TypedExprDef;
 import reflaxe.BaseCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.preprocessors.BasePreprocessor;
@@ -107,6 +105,9 @@ class ConvertBitwiseOperators extends BasePreprocessor
 			case TNew(c, params, el):
 				for (e in el)
 					e = processExpr(e);
+				
+			case TFunction(tfunc):
+				tfunc.expr = processExpr(tfunc.expr);
 
 			case TVar(v, expr):
 				if (expr != null) expr = processExpr(expr);

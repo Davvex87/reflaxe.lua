@@ -21,7 +21,7 @@ class Classes extends SubCompiler {
 		var output = "";
 		var superClassName:Null<String> = classType.superClass?.t?.get()?.name;
 
-		output += '${classType.name} = setmetatable({}, {\n\t__tostring = function(self)\n\t\treturn "Class<${classType.name}>"\n\tend;\n';
+		output += 'local ${classType.name} = setmetatable({}, {\n\t__tostring = function(self)\n\t\treturn "Class<${classType.name}>"\n\tend;\n';
 
 		if (superClassName != null)
 			output += '\t__index = $superClassName;\n';

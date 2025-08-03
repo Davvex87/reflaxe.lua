@@ -65,7 +65,7 @@ extern class Array<T>
 	inline function copy():Array<T>
 		return ArrayTools.copy(this);
 
-	inline function iterator():haxe.iterators.ArrayIterator<T>
+	public function iterator():haxe.iterators.ArrayIterator<T>
 		return new haxe.iterators.ArrayIterator(this);
 
 	public inline function keyValueIterator():ArrayKeyValueIterator<T>
