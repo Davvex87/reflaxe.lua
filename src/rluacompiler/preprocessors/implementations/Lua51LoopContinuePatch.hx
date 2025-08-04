@@ -61,6 +61,7 @@ class Lua51LoopContinuePatch extends BasePreprocessor
 			{
 				case TContinue: hasContinue = true;
 				case TBreak: hasBreak = true;
+				case TFunction(tfunc):
 				default: TypedExprTools.iter(expr, exprCheck);
 			}
 		}
@@ -78,11 +79,12 @@ class Lua51LoopContinuePatch extends BasePreprocessor
 			extra: null
 		};
 
-		es.push({
-			expr: TVar(breakVar, {expr: TConst(TBool(false)), pos: expr.pos, t: expr.t}),
-			pos: expr.pos,
-			t: expr.t
-		});
+		if (hasBreak && hasContinue)
+			es.push({
+				expr: TVar(breakVar, {expr: TConst(TBool(false)), pos: expr.pos, t: expr.t}),
+				pos: expr.pos,
+				t: expr.t
+			});
 
 		var blockEx:Array<TypedExpr> = [];
 		var loopExpr = {
