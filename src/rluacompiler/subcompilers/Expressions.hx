@@ -12,6 +12,8 @@ import rluacompiler.utils.CodeBuf;
 import haxe.macro.Type;
 import haxe.macro.TypedExprTools;
 
+using StringTools;
+
 class Expressions extends SubCompiler
 {
 	public function compileExpressionImpl(expr: TypedExpr, depth: Int, ?previous:TypedExpr): Null<String>
@@ -48,7 +50,7 @@ class Expressions extends SubCompiler
 						"self";
 
 					case TSuper:
-						"self.super";
+						"self.__super__";
 
 					default:
 						null;
@@ -92,7 +94,7 @@ class Expressions extends SubCompiler
 						var field = cf.get();
 						var accessor = switch(field.kind)
 						{
-							case FMethod(_): ":";
+							case FMethod(_) if (!e.expr.match(TConst(TSuper))): ":";
 							case FVar(_, _): ".";
 							default: ".";
 						}
@@ -166,8 +168,17 @@ class Expressions extends SubCompiler
 					case _:
 				};
 
+				var field = exprImpl(e);
+
+				var isSuperCall:Bool = field.startsWith("self.__super__");
+
+				if (field == "self.__super__")
+					field += ".__constructor";
+
 				var args = el.map(arg -> exprImpl(arg));
-				'${exprImpl(e)}(${args.join(", ")})';
+				if (isSuperCall)
+					args.insert(0, "self");
+				'$field(${args.join(", ")})';
 
 			case TNew(c, params, el):
 				var code = main.compileNativeFunctionCodeMeta(expr, el);

@@ -30,28 +30,34 @@ class Classes extends SubCompiler {
 		output += '${classType.name}.__index = ${classType.name}\n';
 
 		if (superClassName != null)
-			output += '${classType.name}.super = ${superClassName}\n';
+			output += '${classType.name}.__super__ = ${superClassName}\n';
+
+		if (classType.interfaces.length > 0)
+			output += '${classType.name}.__interfaces__ = {${classType.interfaces.map((i) -> i.t.get().name).join(", ")}}\n';
 
 		var hasInstField = Lambda.exists(varFields, v -> !v.isStatic) || Lambda.exists(funcFields, v -> !v.isStatic);
 
-		for (varf in varFields)
+		if (!classType.isInterface)
 		{
-			if (varf.isStatic)
-				output += main.fieldsSubCompiler.compileStaticImpl(varf);
-		}
+			for (varf in varFields)
+			{
+				if (varf.isStatic)
+					output += main.fieldsSubCompiler.compileStaticImpl(varf);
+			}
 
-		if (hasInstField)
-		{
-			output += 'function ${classType.name}.new(...)\n';
-			output += '\tlocal self = setmetatable({__tostring = function(self) return "${classType.name}" end}, ${classType.name})\n\tself:__constructor(...)\n\treturn self\n';
-			output += 'end\n';
-		}
+			if (hasInstField)
+			{
+				output += 'function ${classType.name}.new(...)\n';
+				output += '\tlocal self = setmetatable({__tostring = function(self) return "${classType.name}" end}, ${classType.name})\n\tself:__constructor(...)\n\treturn self\n';
+				output += 'end\n';
+			}
 
-		for (func in funcFields)
-		{
-			var r = main.fieldsSubCompiler.compileFuncImpl(func);
-			if (r != null)
-				output += r;
+			for (func in funcFields)
+			{
+				var r = main.fieldsSubCompiler.compileFuncImpl(func);
+				if (r != null)
+					output += r;
+			}
 		}
 
 		return output;

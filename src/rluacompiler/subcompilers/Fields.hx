@@ -56,7 +56,10 @@ class Fields extends SubCompiler {
 			bodyCode = code;
 		}
 		else
-			bodyCode = main.expressionsSubCompiler.compileExpressionImpl(func.expr, 0);
+		{
+			if (func.expr != null)
+				bodyCode = main.expressionsSubCompiler.compileExpressionImpl(func.expr, 0);
+		}
 
 		output += bodyCode.replace("\n", "\n\t") + '\n';
 		output += 'end\n';

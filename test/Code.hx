@@ -6,7 +6,13 @@ enum TestEnum {
 	Three;
 }
 
-class TestClass {
+interface TestInterface
+{
+	public function increment(i:Int):Void;
+}
+
+class TestClass implements TestInterface
+{
 	var field: TestEnum;
 
 	public function new(arg1:String, arg2:TestEnum = One, ...rest) {
