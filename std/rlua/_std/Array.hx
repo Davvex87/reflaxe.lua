@@ -2,6 +2,7 @@ package;
 
 import rlua.ArrayTools;
 import rlua.Syntax;
+import haxe.iterators.ArrayIterator;
 import haxe.iterators.ArrayKeyValueIterator;
 
 extern class Array<T>
@@ -65,8 +66,8 @@ extern class Array<T>
 	inline function copy():Array<T>
 		return ArrayTools.copy(this);
 
-	public function iterator():haxe.iterators.ArrayIterator<T>
-		return new haxe.iterators.ArrayIterator(this);
+	public inline function iterator():ArrayIterator<T>
+		return new ArrayIterator(this);
 
 	public inline function keyValueIterator():ArrayKeyValueIterator<T>
 		return new ArrayKeyValueIterator(this);
