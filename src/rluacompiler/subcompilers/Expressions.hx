@@ -283,13 +283,17 @@ class Expressions extends SubCompiler
 
 				if (eelse != null && !isEmptyBlock(eelse))
 				{
-					//TODO: remove that extra new line if the expr after the else is another if
+					var nextIsIf = eelse.expr.match(TIf(_, _, _));
 					buff += '${buff.leave}else';
-					buff += '${buff.enter}';
+					if (!nextIsIf)
+						buff += '${buff.enter}';
 					buff += exprImpl(eelse, 1);
+					if (!nextIsIf)
+						buff += '${buff.leave}end';
 				}
+				else
+					buff += '${buff.leave}end';
 
-				buff += '${buff.leave}end';
 				buff;
 
 			case TWhile(econd, e, normalWhile):
