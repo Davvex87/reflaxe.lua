@@ -341,7 +341,8 @@ class Expressions extends SubCompiler
 				
 				if (edef != null && !isEmptyBlock(edef))
 				{
-					buff += '${buff.leave}else${buff.enter}';
+					buff += buff.leave;
+					buff += 'else${buff.enter}';
 					buff += exprImpl(edef, 1);
 				}
 				
@@ -438,7 +439,6 @@ class Expressions extends SubCompiler
 		return switch(expr.expr)
 		{
 			case TBlock(el):
-				trace(el.length == 0);
 				el.length == 0;
 			case _:
 				false;
