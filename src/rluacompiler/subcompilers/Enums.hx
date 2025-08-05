@@ -19,18 +19,34 @@ class Enums extends SubCompiler {
 
 		var output = "";
 
-		output += '${enumType.name} = setmetatable({\n';
+		output += 'local ${enumType.name}\n${enumType.name} = setmetatable({\n';
 		
 		var i = 0;
 		for (constr in constructs)
 		{
-			output += '\t${constr.name} = setmetatable(' + 
-				'{index=${i++}},' +
-				'{__tostring=function(self) return "${enumType.name}.${constr.name}" end}),\n';
+			if (constr.args.length == 0)
+				output += '\t${constr.name} = setmetatable(' + 
+					'{index=${i++}, __name__="${constr.name}",__enum__=${enumType.name}},' +
+					'{__tostring=function(self)return"${enumType.name}.${constr.name}"end}),\n';
+			else 
+			{
+				var aI:Int = 0;
+				var args:Array<String> = constr.args.map((f) -> '[${++aI}]='+constr.args[aI-1].name);
+				output += '\t${constr.name} = function(${constr.args.map((f) -> f.name).join(",")})' + 
+					'return setmetatable(' + 
+					'{index=${i++},${args.join(",")}, __name__="${constr.name}",__enum__=${enumType.name}},' +
+					'{__tostring=function(self)return"${enumType.name}.${constr.name}"end})end,\n';
+			}
 		}
 
 		output += '}, {\n\t__tostring = function(self)\n\t\treturn "Enum<${enumType.name}>"\n\tend\n})\n';
 		output += '${enumType.name}.__index = ${enumType.name}\n';
+		output += '${enumType.name}.__name__ = "${enumType.name}"\n';
+
+		var emptyConstr = constructs.filter((f) -> f.args.length == 0);
+		if (emptyConstr.length > 0)
+			output += '${enumType.name}.__empty_constr__ = {${emptyConstr.map((f) -> f.name).map((n) -> '${enumType.name}.$n').join(", ")}}\n';
+
 		output += "\n";
 
 		return output;

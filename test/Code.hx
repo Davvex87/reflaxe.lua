@@ -6,6 +6,15 @@ enum TestEnum {
 	Three;
 }
 
+enum AdvancedEnum {
+	Normal;
+	Constructor(arg:Array<Int>);
+	Constructor2Args(text:String, moreText:String);
+	AnotherConstr(fav:Class<Dynamic>);
+	Something;
+	YetAnotherConstr(bananas:Float, ?yes:Bool);
+}
+
 interface TestInterface
 {
 	public function increment(i:Int):Void;
@@ -24,7 +33,7 @@ class TestClass implements TestInterface
 		untyped print(arr.join(", ")); 	// "1, 2, 5"
 		untyped print(arr.length); 		// 3
 		untyped print(arr[2]); 			// 5
-		arr[3] = 10;
+		arr[3] = Math.round(Math.PI);
 
 		for (num in arr)
 		{
@@ -155,6 +164,25 @@ function main()
 	some.one(5.5);
 	untyped print(some.did);
 	some.three();
+
+	var myEnumVal:AdvancedEnum = YetAnotherConstr(5.5);
+
+	var myValue = switch(myEnumVal)
+	{
+		case Normal:
+			'Normal';
+		case Constructor2Args(text, moreText):
+			'Constructor2Args($text, $moreText)';
+		case AnotherConstr(fav):
+			'AnotherConstr($fav)';
+		case YetAnotherConstr(bananas, yes):
+			'YetAnotherConstr($bananas, ?$yes)';
+		default:
+			untyped print('Item $myEnumVal not recognized...');
+			'???';
+	}
+	untyped print(myValue);
+
 }
 
 class SomeClass extends OtherClass
@@ -222,6 +250,6 @@ class OtherClass
 		trace("I WAS CALLED!");
 	}
 
-	function get_didWeDoIt():Bool
+	public function get_didWeDoIt():Bool
 		return did;
 }
