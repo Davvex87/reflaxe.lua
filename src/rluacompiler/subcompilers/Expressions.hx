@@ -57,7 +57,7 @@ class Expressions extends SubCompiler
 				}
 
 			case TLocal(v):
-				 v.name;
+				v.name;
 
 			case TArray(e1, e2):
 				var num = switch(e2.expr)
@@ -222,7 +222,7 @@ class Expressions extends SubCompiler
 			case TFunction(tfunc):
 				var args = tfunc.args.map(arg -> arg.v.name);
 				var body = exprImpl(tfunc.expr, 1);
-				'function(${args.join(", ")})\n${body}\nend';
+				'(function(${args.join(", ")})\n${body}\nend)';
 
 			case TVar(v, expr):
 				if (expr != null)
