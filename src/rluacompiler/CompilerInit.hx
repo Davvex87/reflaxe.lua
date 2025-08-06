@@ -37,7 +37,8 @@ class CompilerInit {
 					opUShr: "rshift",
 					opNegBits: "bnot"
 				})),
-				Custom(new Lua51LoopContinuePatch())
+				Custom(new Lua51LoopContinuePatch()),
+				Custom(new LuaMultiReturnPatch())
 			],
 			fileOutputExtension: ".lua",
 			outputDirDefineName: "lua-output",

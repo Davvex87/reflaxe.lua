@@ -1,5 +1,7 @@
 package;
 
+import rlua.Os;
+
 enum TestEnum {
 	One;
 	Two;
@@ -185,6 +187,15 @@ function main()
 	}
 	untyped print(myValue);
 
+	var res = Os.remove("important");
+	if (res.result == null)
+		untyped print(res.error);
+
+	function doSum(r:Dynamic)
+	{
+		untyped print(r);
+	}
+	doSum(Os.remove("folder2"));
 }
 
 class SomeClass extends OtherClass
