@@ -1,3 +1,9 @@
 {
-	"files.eol": "\n"
+	"[haxe]": {
+		"editor.formatOnSave": true,
+		"editor.formatOnPaste": true,
+		"editor.wordWrap": "wordWrapColumn",
+		"editor.wordWrapColumn": 130
+	},
+	"files.eol": "\n",
 }
