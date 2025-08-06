@@ -220,9 +220,14 @@ class Expressions extends SubCompiler
 				}
 
 			case TFunction(tfunc):
+				var buff:CodeBuf = new CodeBuf();
 				var args = tfunc.args.map(arg -> arg.v.name);
 				var body = exprImpl(tfunc.expr, 1);
-				'(function(${args.join(", ")})\n${body}\nend)';
+
+				buff += '(function(${args.join(", ")})${buff.enter}';
+				buff += body;
+				buff += '${buff.leave}end)';
+				buff;
 
 			case TVar(v, expr):
 				if (expr != null)
