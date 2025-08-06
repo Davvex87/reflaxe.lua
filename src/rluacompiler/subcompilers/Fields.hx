@@ -1,5 +1,6 @@
 package rluacompiler.subcompilers;
 
+import reflaxe.helpers.ArrayHelper;
 #if (macro || rlua_runtime)
 
 import haxe.macro.Type;
@@ -39,8 +40,20 @@ class Fields extends SubCompiler {
 		var clsName = func.classType.name;
 		var funcName = func.field.name == "new" ? "__constructor" : func.field.name;
 
+		var restArgs:Array<String> = [];
+
 		for (arg in func.args)
-			argsStr += arg.getName() + (func.args.indexOf(arg) < func.args.length - 1 ? ", " : "");
+		{
+			var name = switch(arg.type)
+			{
+				case TAbstract(t, _) if (t.get().name == "Rest" && ArrayHelper.equals(t.get().pack, ["haxe"])):
+					restArgs.push(arg.getName());
+					"...";
+				default:
+					arg.getName();
+			}
+			argsStr += name + (func.args.indexOf(arg) < func.args.length - 1 ? ", " : "");
+		}
 		
 		output += 'function ${clsName}${isDotMethod(func) ? "." : ":"}${funcName}(${argsStr})\n\t';
 		
@@ -60,6 +73,10 @@ class Fields extends SubCompiler {
 			if (func.expr != null)
 				bodyCode = main.expressionsSubCompiler.compileExpressionImpl(func.expr, 0);
 		}
+
+		if (restArgs.length > 0)
+			for (i in 0...restArgs.length)
+				output += 'local ${restArgs[i]} = {...}\n\t';
 
 		output += bodyCode.replace("\n", "\n\t") + '\n';
 		output += 'end\n';

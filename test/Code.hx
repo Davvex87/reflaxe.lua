@@ -24,10 +24,12 @@ class TestClass implements TestInterface
 {
 	var field: TestEnum;
 
-	public function new(arg1:String, arg2:TestEnum = One, ...rest) {
+	public function new(arg1:String, arg2:TestEnum = One, ...rest:Float) {
 		trace("Create Code class! " + arg1);
 		field = arg2 ?? Two;
 		untyped print(rest);
+		untyped print(rest.toArray);
+		untyped print(rest.length);
 
 		var arr = [1,2,5];
 		untyped print(arr.join(", ")); 	// "1, 2, 5"

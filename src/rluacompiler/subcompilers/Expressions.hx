@@ -1,5 +1,6 @@
 package rluacompiler.subcompilers;
 
+import reflaxe.helpers.ArrayHelper;
 #if (macro || rlua_runtime)
 
 import reflaxe.DirectToStringCompiler;
@@ -221,7 +222,15 @@ class Expressions extends SubCompiler
 
 			case TFunction(tfunc):
 				var buff:CodeBuf = new CodeBuf();
-				var args = tfunc.args.map(arg -> arg.v.name);
+				var args = tfunc.args.map(arg -> 
+					switch(arg.v.t)
+					{
+						case TInst(t, _) if (t.get().name == "Rest" && ArrayHelper.equals(t.get().pack, ["haxe"])):
+							"...";
+						default:
+							arg.v.name;
+					}
+				);
 				var body = exprImpl(tfunc.expr, 1);
 
 				buff += '(function(${args.join(", ")})${buff.enter}';
