@@ -1,12 +1,17 @@
 package rlua;
 
+import haxe.extern.EitherType;
+
+/**
+	Operating System Facilities.
+**/
 @:native("os")
 extern class Os
 {
 	/**
 	 * Returns an approximation of the amount in seconds of CPU time used by the program.
 	 */
-	public static function clock():Float;
+	static function clock():Float;
 
 	/**
 	 * Returns a string or a table containing date and time, formatted according to the given string format.
@@ -19,39 +24,39 @@ extern class Os
 	 * 
 	 * When called without arguments, date returns a reasonable date and time representation that depends on the host system and on the current locale (that is, os.date() is equivalent to os.date("%c")).
 	 */
-	@:overload(function(format:String, time:Float):String {})
-	@:overload(function(format:String):String {})
-	public static function date():Dynamic;
+	@:overload(function(format:String, time:Float):EitherType<String, DateResult> {})
+	@:overload(function(format:String):EitherType<String, DateResult> {})
+	static function date():String;
 
 	/**
 	 * Returns the number of seconds from time t1 to time t2. In POSIX, Windows, and some other systems, this value is exactly t2-t1.
 	 */
-	public static function difftime(t2:Float, t1:Float):Float;
+	static function difftime(t2:Float, t1:Float):Float;
 
 	/**
 	 * This function is equivalent to the C function system. It passes command to be executed by an operating system shell. It returns a status code, which is system-dependent. If command is absent, then it returns nonzero if a shell is available and zero otherwise.
 	 */
-	public static function execute(command:String):Int;
-	
+	static function execute(command:String):Int;
+
 	/**
 	 * Calls the C function exit, with an optional code, to terminate the host program. The default value for code is the success code.
 	 */
-	public static function exit(?code:Int):Void;
-	
+	static function exit(?code:Int):Void;
+
 	/**
 	 * Returns the value of the process environment variable varname, or nil if the variable is not defined.
 	 */
-	public static function getenv(varname:String):Null<String>;
-	
+	static function getenv(varname:String):Null<String>;
+
 	/**
 	 * Deletes the file or directory with the given name. Directories must be empty to be removed. If this function fails, it returns nil, plus a string describing the error.
 	 */
-	public static function remove(filename:String):RemoveResult;
-	
+	static function remove(filename:String):RemoveResult;
+
 	/**
 	 * Renames file or directory named oldname to newname. If this function fails, it returns nil, plus a string describing the error.
 	 */
-	public static function rename(oldname:String, newname:String):{success:Bool, result:String};
+	static function rename(oldname:String, newname:String):RenameResult;
 
 	/**
 	 * Sets the current locale of the program. locale is a string specifying a locale; category is an optional string describing which category to change: "all", "collate", "ctype", "monetary", "numeric", or "time"; the default category is "all". The function returns the name of the new locale, or nil if the request cannot be honored.
@@ -60,14 +65,14 @@ extern class Os
 	 * 
 	 * When called with nil as the first argument, this function only returns the name of the current locale for the given category.
 	 */
-	public static function setlocale(locale:String, ?category:String):Null<String>;
+	static function setlocale(locale:String, ?category:String):Null<String>;
 
 	/**
 	 * Returns the current time when called without arguments, or a time representing the date and time specified by the given table. This table must have fields year, month, and day, and may have fields hour, min, sec, and isdst (for a description of these fields, see the os.date function).
 	 * 
 	 * The returned value is a number, whose meaning depends on your system. In POSIX, Windows, and some other systems, this number counts the number of seconds since some given start time (the "epoch"). In other systems, the meaning is not specified, and the number returned by time can be used only as an argument to date and difftime.
 	 */
-	public static function time(?table:Dynamic):Float;
+	static function time(?table:Dynamic):Float;
 
 	/**
 	 * Returns a string with a file name that can be used for a temporary file. The file must be explicitly opened before its use and explicitly removed when no longer needed.
@@ -76,7 +81,20 @@ extern class Os
 	 * 
 	 * When possible, you may prefer to use io.tmpfile, which automatically removes the file when the program ends.
 	 */
-	public static function tmpname():String;
+	static function tmpname():String;
+}
+
+typedef DateResult =
+{
+	var hour:Int;
+	var min:Int;
+	var wday:Int;
+	var day:Int;
+	var month:Int;
+	var year:Int;
+	var sec:Int;
+	var yday:Int;
+	var isdst:Bool;
 }
 
 @:multiReturn
@@ -84,4 +102,13 @@ extern class RemoveResult
 {
 	var result:Dynamic;
 	var error:String;
+	var code:Int;
+}
+
+@:multiReturn
+extern class RenameResult
+{
+	var result:Dynamic;
+	var error:String;
+	var code:Int;
 }
