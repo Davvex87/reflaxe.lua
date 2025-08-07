@@ -1,14 +1,17 @@
 package;
 
+import rlua.Coroutine;
 import rlua.Os;
 
-enum TestEnum {
+enum TestEnum
+{
 	One;
 	Two;
 	Three;
 }
 
-enum AdvancedEnum {
+enum AdvancedEnum
+{
 	Normal;
 	Constructor(arg:Array<Int>);
 	Constructor2Args(text:String, moreText:String);
@@ -24,19 +27,20 @@ interface TestInterface
 
 class TestClass implements TestInterface
 {
-	var field: TestEnum;
+	var field:TestEnum;
 
-	public function new(arg1:String, arg2:TestEnum = One, ...rest:Float) {
+	public function new(arg1:String, arg2:TestEnum = One, ...rest:Float)
+	{
 		trace("Create Code class! " + arg1);
 		field = arg2 ?? Two;
 		untyped print(rest);
 		untyped print(rest.toArray);
 		untyped print(rest.length);
 
-		var arr = [1,2,5];
-		untyped print(arr.join(", ")); 	// "1, 2, 5"
-		untyped print(arr.length); 		// 3
-		untyped print(arr[2]); 			// 5
+		var arr = [1, 2, 5];
+		untyped print(arr.join(", ")); // "1, 2, 5"
+		untyped print(arr.length); // 3
+		untyped print(arr[2]); // 5
 		arr[3] = Math.round(Math.PI);
 
 		for (num in arr)
@@ -51,30 +55,30 @@ class TestClass implements TestInterface
 		untyped print(otherArray.concat(arr));
 
 		var e:Dynamic = cast "TestStr";
-		untyped print(e + 20); 					// "print(e + 20)"
-		untyped print(cast(e, String) + 20); 	// "print(e .. 20)"
+		untyped print(e + 20); // "print(e + 20)"
+		untyped print(cast(e, String) + 20); // "print(e .. 20)"
 
 		/*
-		for (num in arr)
-			untyped print(num * 2);
-		*/
+			for (num in arr)
+				untyped print(num * 2);
+		 */
 
 		var n = 10;
 		while (n > 2)
 		{
-			n-=1;
+			n -= 1;
 			if (n == 5)
 				continue;
 		}
 
 		while (n > 2)
 		{
-			n-=1;
+			n -= 1;
 			if (n == 5)
 			{
 				if (n > 4)
-				{	
-					n-=3;
+				{
+					n -= 3;
 					continue;
 				}
 			}
@@ -82,17 +86,17 @@ class TestClass implements TestInterface
 
 		while (n > 2)
 		{
-			n-=1;
+			n -= 1;
 			if (n > 1)
 				break;
 		}
 
 		while (n > 2)
 		{
-			n-=1;
+			n -= 1;
 			if (n == 5)
 				break;
-			else if(n == 8)
+			else if (n == 8)
 				continue;
 		}
 
@@ -107,11 +111,15 @@ class TestClass implements TestInterface
 		}
 	}
 
-	public function increment(i:Int) {
+	public function increment(i:Int)
+	{
 		untyped print(i);
-		switch(field) {
-			case One: field = Two;
-			case Two: field = Three;
+		switch (field)
+		{
+			case One:
+				field = Two;
+			case Two:
+				field = Three;
 			case _:
 		}
 		untyped print(field);
@@ -120,21 +128,21 @@ class TestClass implements TestInterface
 
 	public static function getNumber():Int
 	{
-		try 
+		try
 		{
 			untyped getValue();
 		}
-		catch(e:Dynamic)
+		catch (e:Dynamic)
 		{
 			trace("Error:", e);
 		}
 
-		try 
+		try
 		{
 			var num:Int = untyped getValue();
 			return num;
 		}
-		catch(e:Dynamic)
+		catch (e:Dynamic)
 		{
 			trace("Error:", e);
 		}
@@ -147,7 +155,8 @@ function main()
 	untyped print("Hello world!");
 
 	final c = new TestClass("Yay!");
-	for(i in 0...TestClass.getNumber()) {
+	for (i in 0...TestClass.getNumber())
+	{
 		c.increment(i);
 		if (i == 2)
 			untyped print("Two!");
@@ -156,7 +165,7 @@ function main()
 
 	var myStruct:{one:Int, two:Int, three:String} = {
 		one: ~Std.random(5),
-		two: (0+4-3)*2,
+		two: (0 + 4 - 3) * 2,
 		three: "3",
 	}
 
@@ -171,7 +180,7 @@ function main()
 
 	var myEnumVal:AdvancedEnum = YetAnotherConstr(5.5);
 
-	var myValue = switch(myEnumVal)
+	var myValue = switch (myEnumVal)
 	{
 		case Normal:
 			'Normal';
@@ -196,11 +205,26 @@ function main()
 		untyped print(r);
 	}
 	doSum(Os.remove("folder2"));
+
+	function task(...args:Dynamic)
+	{
+		Coroutine.yield(args[0] ?? "first");
+		return "second";
+	}
+
+	var taskCoro = Coroutine.create(task);
+	var resumeResult = Coroutine.resume(taskCoro, 1, "Yay");
+	untyped print(resumeResult.success, resumeResult.result);
+	resumeResult = Coroutine.resume(taskCoro);
+	untyped print(resumeResult.success, resumeResult.result);
 }
 
 class SomeClass extends OtherClass
 {
-	public function new(a1:Int, a2:String) {super(a1 * 2, a2);}
+	public function new(a1:Int, a2:String)
+	{
+		super(a1 * 2, a2);
+	}
 
 	static var n:Float = 0.3;
 	static var myNumber(get, set):Int;
@@ -218,7 +242,6 @@ class SomeClass extends OtherClass
 		myNumber = 4;
 	}
 
-
 	static function set_myNumber(value:Int):Int
 		return untyped n += value;
 
@@ -229,6 +252,7 @@ class SomeClass extends OtherClass
 class OtherClass
 {
 	static var e:Int = -10;
+
 	public var did:Bool = false;
 
 	public var didWeDoIt(get, never):Bool;
