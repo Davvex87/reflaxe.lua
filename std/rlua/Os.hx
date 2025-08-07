@@ -72,7 +72,7 @@ extern class Os
 	 * 
 	 * The returned value is a number, whose meaning depends on your system. In POSIX, Windows, and some other systems, this number counts the number of seconds since some given start time (the "epoch"). In other systems, the meaning is not specified, and the number returned by time can be used only as an argument to date and difftime.
 	 */
-	static function time(?table:Dynamic):Float;
+	static function time(?table:TimeParam):Float;
 
 	/**
 	 * Returns a string with a file name that can be used for a temporary file. The file must be explicitly opened before its use and explicitly removed when no longer needed.
@@ -82,6 +82,19 @@ extern class Os
 	 * When possible, you may prefer to use io.tmpfile, which automatically removes the file when the program ends.
 	 */
 	static function tmpname():String;
+}
+
+typedef TimeParam =
+{
+	var ?hour:Int;
+	var ?min:Int;
+	var wday:Int;
+	var day:Int;
+	var month:Int;
+	var year:Int;
+	var ?sec:Int;
+	var yday:Int;
+	var ?isdst:Bool;
 }
 
 typedef DateResult =
