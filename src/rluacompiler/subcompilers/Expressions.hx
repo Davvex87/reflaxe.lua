@@ -415,7 +415,7 @@ class Expressions extends SubCompiler
 				'${exprImpl(e1)}[${index + 1}]'; // Lua arrays are 1-indexed
 
 			case TEnumIndex(e1):
-				'${exprImpl(e1)}.index';
+				'${exprImpl(e1)}._index';
 
 			case TIdent(s):
 				s;
