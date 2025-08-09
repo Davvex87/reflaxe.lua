@@ -1,8 +1,6 @@
 package rluacompiler.subcompilers;
 
-import reflaxe.helpers.ArrayHelper;
 #if (macro || rlua_runtime)
-
 import reflaxe.DirectToStringCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
@@ -12,20 +10,21 @@ import haxe.macro.Expr;
 import rluacompiler.utils.CodeBuf;
 import haxe.macro.Type;
 import haxe.macro.TypedExprTools;
+import reflaxe.helpers.ArrayHelper;
 
 using StringTools;
 
 class Expressions extends SubCompiler
 {
-	public function compileExpressionImpl(expr: TypedExpr, depth: Int, ?previous:TypedExpr): Null<String>
+	public function compileExpressionImpl(expr:TypedExpr, depth:Int, ?previous:TypedExpr):Null<String>
 	{
-		function exprImpl(e:TypedExpr, depthOffset:Int = 0): Null<String>
+		function exprImpl(e:TypedExpr, depthOffset:Int = 0):Null<String>
 			return compileExpressionImpl(e, depth + depthOffset, expr);
 
-		return switch(expr.expr)
+		return switch (expr.expr)
 		{
 			case TConst(c):
-				switch(c)
+				switch (c)
 				{
 					case TInt(i):
 						Std.string(i);
@@ -61,10 +60,10 @@ class Expressions extends SubCompiler
 				v.name;
 
 			case TArray(e1, e2):
-				var num = switch(e2.expr)
+				var num = switch (e2.expr)
 				{
 					case TConst(c):
-						switch(c)
+						switch (c)
 						{
 							case TInt(i):
 								i;
@@ -74,13 +73,10 @@ class Expressions extends SubCompiler
 					case _:
 						null;
 				}
-				if (num != null)
-					'${exprImpl(e1)}[${num+1}]';
-				else
-					'${exprImpl(e1)}[${exprImpl(e2)}+1]';
+				if (num != null) '${exprImpl(e1)}[${num + 1}]'; else '${exprImpl(e1)}[${exprImpl(e2)}+1]';
 
 			case TBinop(op, e1, e2):
-				switch(op)
+				switch (op)
 				{
 					case OpAssignOp(op):
 						'${exprImpl(e1)} = ${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
@@ -89,11 +85,11 @@ class Expressions extends SubCompiler
 				}
 
 			case TField(e, fa):
-				switch(fa)
+				switch (fa)
 				{
 					case FInstance(c, params, cf):
 						var field = cf.get();
-						var accessor = switch(field.kind)
+						var accessor = switch (field.kind)
 						{
 							case FMethod(_) if (!e.expr.match(TConst(TSuper))): ":";
 							case FVar(_, _): ".";
@@ -101,10 +97,7 @@ class Expressions extends SubCompiler
 						}
 						'${exprImpl(e)}${accessor}${field.name}';
 					case FStatic(c, cf):
-						if (c.get().name.length == 0)
-							cf.get().name;
-						else
-							'${c.get().name}.${cf.get().name}';
+						if (c.get().name.length == 0) cf.get().name; else '${c.get().name}.${cf.get().name}';
 					case FAnon(cf):
 						'${exprImpl(e)}.${cf.get().name}';
 					case FDynamic(s):
@@ -116,7 +109,7 @@ class Expressions extends SubCompiler
 				}
 
 			case TTypeExpr(m):
-				switch(m)
+				switch (m)
 				{
 					case TClassDecl(c):
 						c.get().name;
@@ -132,9 +125,12 @@ class Expressions extends SubCompiler
 				'(${exprImpl(e)})';
 
 			case TObjectDecl(fields):
+				var fieldStrs = fields.map(f -> '${f.name} = ${exprImpl(f.expr)}');
+				if (fieldStrs.length == 0)
+					return '{}';
+
 				var buff:CodeBuf = new CodeBuf();
 
-				var fieldStrs = fields.map(f -> '${f.name} = ${exprImpl(f.expr)}');
 				buff += '{${buff.enter}';
 				buff += fieldStrs.join(",\n");
 				buff += '${buff.leave}}';
@@ -148,11 +144,11 @@ class Expressions extends SubCompiler
 				var code = main.compileNativeFunctionCodeMeta(e, el);
 				if (code != null)
 					return code;
-				
-				switch(e.expr)
+
+				switch (e.expr)
 				{
 					case TIdent(s):
-						switch(s)
+						switch (s)
 						{
 							case "__lua__":
 								return parseUntypedSyntaxCode(el);
@@ -160,10 +156,10 @@ class Expressions extends SubCompiler
 						}
 
 					case TField(e, fa):
-						switch(fa) {
+						switch (fa)
+						{
 							case FStatic(c, cf):
-								if (c.get().name == "Syntax" && cf.get().name == "code")
-									return parseUntypedSyntaxCode(el);
+								if (c.get().name == "Syntax" && cf.get().name == "code") return parseUntypedSyntaxCode(el);
 							case _:
 						}
 					case _:
@@ -190,47 +186,48 @@ class Expressions extends SubCompiler
 				'${c.get().name}.new(${args.join(", ")})';
 
 			case TUnop(op, postFix, e):
-				switch(op) {
+				switch (op)
+				{
 					case OpIncrement:
 						var exprStr = exprImpl(e);
-						if (postFix) {
+						if (postFix)
+						{
 							var tempVar = '__temp_${Std.random(100000)}';
 							'(function() local ${tempVar} = ${exprStr}; ${exprStr} = ${exprStr} + 1; return ${tempVar} end)()';
-						} else 
-							'(function() ${exprStr} = ${exprStr} + 1; return ${exprStr} end)()';
-						
+						}
+						else '(function() ${exprStr} = ${exprStr} + 1; return ${exprStr} end)()';
+
 					case OpDecrement:
 						var exprStr = exprImpl(e);
-						if (postFix) {
+						if (postFix)
+						{
 							var tempVar = '__temp_${Std.random(100000)}';
 							'(function() local ${tempVar} = ${exprStr}; ${exprStr} = ${exprStr} - 1; return ${tempVar} end)()';
-						} else
-							'(function() ${exprStr} = ${exprStr} - 1; return ${exprStr} end)()';
-						
+						}
+						else '(function() ${exprStr} = ${exprStr} - 1; return ${exprStr} end)()';
+
 					case OpNot:
 						'not ${exprImpl(e)}';
-						
+
 					case OpNeg:
 						'-${exprImpl(e)}';
-						
+
 					case OpNegBits: // Moved to src/rluacompiler/preprocessors/implementations/ConvertBitwiseOperators.hx
 						'~${exprImpl(e)}';
-						
+
 					default:
 						throw 'Unary operator ${op} not implemented';
 				}
 
 			case TFunction(tfunc):
 				var buff:CodeBuf = new CodeBuf();
-				var args = tfunc.args.map(arg -> 
-					switch(arg.v.t)
-					{
-						case TInst(t, _) if (t.get().name == "Rest" && ArrayHelper.equals(t.get().pack, ["haxe"])):
-							"...";
-						default:
-							arg.v.name;
-					}
-				);
+				var args = tfunc.args.map(arg -> switch (arg.v.t)
+				{
+					case TInst(t, _) if (t.get().name == "Rest" && ArrayHelper.equals(t.get().pack, ["haxe"])):
+						"...";
+					default:
+						arg.v.name;
+				});
 				var body = exprImpl(tfunc.expr, 1);
 
 				buff += '(function(${args.join(", ")})${buff.enter}';
@@ -239,13 +236,10 @@ class Expressions extends SubCompiler
 				buff;
 
 			case TVar(v, expr):
-				if (expr != null)
-					'local ${v.name} = ${exprImpl(expr)}';
-				else
-					'local ${v.name}';
+				if (expr != null) 'local ${v.name} = ${exprImpl(expr)}'; else 'local ${v.name}';
 
 			case TBlock(el):
-				var alreadyHasBlock = previous != null && switch(previous.expr)
+				var alreadyHasBlock = previous != null && switch (previous.expr)
 				{
 					case TBlock(_): true;
 					case TFor(_, _, _): true;
@@ -255,15 +249,16 @@ class Expressions extends SubCompiler
 					case TSwitch(_, _, _): true;
 					case TTry(_, _): true;
 					default: false;
-				}
-				
-				var statements = el.map(e -> {
+				} var statements = el.map(e ->
+
+				{
 					var compiled = exprImpl(e, alreadyHasBlock ? 0 : 1);
 					return compiled;
-					//return alreadyHasBlock ? compiled : indent(depth + 1) + compiled;
+					// return alreadyHasBlock ? compiled : indent(depth + 1) + compiled;
 				});
-				
-				if (statements.length < 1) return "";
+
+				if (statements.length < 1)
+					return "";
 
 				var buff:CodeBuf = new CodeBuf();
 
@@ -271,7 +266,7 @@ class Expressions extends SubCompiler
 					buff += statements.join('\n');
 				else
 				{
-					//buff += 'do\n${statements.join('\n')}\nend';
+					// buff += 'do\n${statements.join('\n')}\nend';
 					buff += 'do${buff.enter}';
 					buff += statements.join('\n');
 					buff += '${buff.leave}end';
@@ -283,7 +278,7 @@ class Expressions extends SubCompiler
 				var buff:CodeBuf = new CodeBuf();
 
 				var body = exprImpl(e2, 1);
-				//'for ${v.name} in ${exprImpl(e1)} do\n${body}\nend';
+				// 'for ${v.name} in ${exprImpl(e1)} do\n${body}\nend';
 				buff += 'for ${v.name} in ${exprImpl(e1)} do${buff.enter}';
 				buff += body;
 				buff += '${buff.leave}end';
@@ -336,13 +331,13 @@ class Expressions extends SubCompiler
 				var switchVar = exprImpl(e);
 				var result = "";
 				var first = true;
-				
+
 				for (c in cases)
 				{
 					var conditions = c.values.map(v -> '${switchVar} == ${exprImpl(v)}');
 					var condStr = conditions.join(' or ');
 					var caseBody = exprImpl(c.expr, 1);
-					
+
 					if (first)
 					{
 						buff += 'if ${condStr} then${buff.enter}';
@@ -356,14 +351,14 @@ class Expressions extends SubCompiler
 						buff += caseBody;
 					}
 				}
-				
+
 				if (edef != null && !isEmptyBlock(edef))
 				{
 					buff += buff.leave;
 					buff += 'else${buff.enter}';
 					buff += exprImpl(edef, 1);
 				}
-				
+
 				buff += '${buff.leave}end';
 				buff;
 
@@ -376,7 +371,7 @@ class Expressions extends SubCompiler
 				buff += 'local success, result = pcall(function()${buff.enter}';
 				buff += exprImpl(e);
 				buff += '${buff.leave}end)\n';
-				
+
 				if (catches.length > 0)
 				{
 					buff += 'if not success then${buff.enter}';
@@ -393,14 +388,11 @@ class Expressions extends SubCompiler
 					}
 					buff += '${buff.leave}end';
 				}
-				
+
 				buff;
 
 			case TReturn(e):
-				if (e != null)
-					'return ${exprImpl(e)}';
-				else
-					'return';
+				if (e != null) 'return ${exprImpl(e)}'; else 'return';
 
 			case TBreak:
 				'break';
@@ -429,11 +421,12 @@ class Expressions extends SubCompiler
 				s;
 
 			default:
-				null;//throw new NotImplementedException('${expr.expr} has not yet been defined to be compiled');
+				null; // throw new NotImplementedException('${expr.expr} has not yet been defined to be compiled');
 		}
 	}
 
 	private var _lastRetExpr:Null<TypedExpr> = null;
+
 	public function getReturnExpr(expr:TypedExpr):TypedExpr
 	{
 		_lastRetExpr = null;
@@ -443,7 +436,7 @@ class Expressions extends SubCompiler
 
 	private function _iterExpr(expr:TypedExpr):Void
 	{
-		switch(expr.expr)
+		switch (expr.expr)
 		{
 			case TReturn(e):
 				_lastRetExpr = expr;
@@ -454,7 +447,7 @@ class Expressions extends SubCompiler
 	}
 
 	public function isEmptyBlock(expr:TypedExpr)
-		return switch(expr.expr)
+		return switch (expr.expr)
 		{
 			case TBlock(el):
 				el.length == 0;
@@ -463,7 +456,7 @@ class Expressions extends SubCompiler
 		}
 
 	public function isStringType(t:Type)
-		return switch(t)
+		return switch (t)
 		{
 			case TMono(t):
 				isStringType(t.get());
@@ -481,10 +474,10 @@ class Expressions extends SubCompiler
 		}
 
 	public function isStringExpr(e:TypedExprDef):Bool
-		return switch(e)
+		return switch (e)
 		{
 			case TConst(c):
-				switch(c)
+				switch (c)
 				{
 					case TString(s):
 						true;
@@ -495,10 +488,9 @@ class Expressions extends SubCompiler
 				isStringType(v.t);
 			case TArray(e1, e2):
 				isStringExpr(e1.expr);
-			case TBinop(op, e1, e2):
-				isStringExpr(e1.expr) || isStringExpr(e2.expr);
+			case TBinop(op, e1, e2): isStringExpr(e1.expr) || isStringExpr(e2.expr);
 			case TField(e, fa):
-				switch(fa)
+				switch (fa)
 				{
 					case FInstance(c, params, cf):
 						isStringType(cf.get().type);
@@ -517,27 +509,25 @@ class Expressions extends SubCompiler
 				isStringExpr(e.expr);
 			case TCall(e, el):
 				isStringExpr(e.expr);
-			case TBlock(el):
-				el.length > 0 && isStringExpr(el[el.length-1].expr);
+			case TBlock(el): el.length > 0 && isStringExpr(el[el.length - 1].expr);
 			case TCast(e, m):
-				switch(m)
+				switch (m)
 				{
 					case TClassDecl(c):
 						c.get().name == "String";
 					case _:
 						false;
 				}
-			case TReturn(e):
-				e != null && isStringExpr(e.expr);
+			case TReturn(e): e != null && isStringExpr(e.expr);
 			case _:
 				false;
 		}
 
 	public function compileOperatorImpl(op:Binop, e1:TypedExpr, e2:TypedExpr)
 	{
-		return switch(op)
+		return switch (op)
 		{
-			case OpAdd: 
+			case OpAdd:
 				if (isStringExpr(e1.expr) || isStringExpr(e2.expr))
 					return "..";
 				"+";
@@ -593,5 +583,4 @@ class Expressions extends SubCompiler
 		return result;
 	}
 }
-
 #end
