@@ -1,4 +1,5 @@
 -D rlua
 -D Lua
 --macro nullSafety("rluacompiler")
+--macro rluacompiler.macros.CustomMacro.build()
 --macro rluacompiler.CompilerInit.Start()
