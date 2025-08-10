@@ -2,10 +2,10 @@
   "name": "reflaxe.Lua",
   "version": "0.0.1",
   "description": "A cleaner implementation of the Lua target for Haxe",
-  "url": "http://example.com",
-  "tags": [],
+  "url": "http://github.com/Davvex87/reflaxe.lua",
+  "tags": ["reflaxe"],
   "dependencies": {
-    "reflaxe": "git:https://github.com/SomeRanDev/reflaxe"
+    "reflaxe": "4.0.0-beta"
   },
   "classPath": "src/",
   "releasenote": "Initial release.",
