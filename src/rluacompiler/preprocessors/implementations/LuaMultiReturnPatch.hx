@@ -31,16 +31,16 @@ class LuaMultiReturnPatch extends BasePreprocessor
 			case TCall(e, el):
 				var t = getFieldType(e);
 				var multiReturnType:Null<Ref<ClassType>> = null;
-				switch(t)
+				switch (t)
 				{
 					case TFun(args, ret):
-						switch(ret)
+						switch (ret)
 						{
 							case TInst(t, params):
 								multiReturnType = t;
 							case _:
 						}
-						
+
 					case _:
 				}
 
@@ -50,7 +50,7 @@ class LuaMultiReturnPatch extends BasePreprocessor
 				var runtimeClassRef:Ref<ClassType>;
 				for (mod in haxeModules)
 				{
-					switch(mod)
+					switch (mod)
 					{
 						case TClassDecl(c):
 							var cls = c.get();
@@ -78,14 +78,11 @@ class LuaMultiReturnPatch extends BasePreprocessor
 
 				return {
 					expr: TCall({
-						expr: TField(
-						{
+						expr: TField({
 							expr: TTypeExpr(TClassDecl(runtimeClassRef)),
 							pos: expr.pos,
 							t: expr.t
-						},
-							FStatic(runtimeClassRef, buildMultiReturnField)
-						),
+						}, FStatic(runtimeClassRef, buildMultiReturnField)),
 						pos: expr.pos,
 						t: expr.t
 					}, [
@@ -102,11 +99,12 @@ class LuaMultiReturnPatch extends BasePreprocessor
 							expr: TCall(e, el),
 							pos: expr.pos,
 							t: expr.t
-						}]),
+						}
+					]),
 					pos: expr.pos,
 					t: expr.t
 				};
-				// TODO: This, check out src/rluacompiler/subcompilers/Expressions.hx:182
+			// TODO: This, check out src/rluacompiler/subcompilers/Expressions.hx:182
 
 			default:
 				return TypedExprTools.map(expr, processExpr);
@@ -115,7 +113,7 @@ class LuaMultiReturnPatch extends BasePreprocessor
 
 	public function getFieldType(expr:TypedExpr):Null<Type>
 	{
-		return switch(expr.expr)
+		return switch (expr.expr)
 		{
 			case TLocal(v):
 				v.t;
@@ -127,7 +125,7 @@ class LuaMultiReturnPatch extends BasePreprocessor
 				getFieldType(e1);
 
 			case TField(e, fa):
-				switch(fa)
+				switch (fa)
 				{
 					case FInstance(c, params, cf):
 						cf.get().type;
@@ -147,7 +145,7 @@ class LuaMultiReturnPatch extends BasePreprocessor
 					case FEnum(e, ef):
 						ef.type;
 				}
-				
+
 			case TParenthesis(e):
 				getFieldType(e);
 
@@ -169,7 +167,7 @@ class LuaMultiReturnPatch extends BasePreprocessor
 			case TBlock(el):
 				for (r in el)
 				{
-					switch(getReturnExpr(r).expr)
+					switch (getReturnExpr(r).expr)
 					{
 						case TReturn(e):
 							if (e == null)
@@ -201,6 +199,7 @@ class LuaMultiReturnPatch extends BasePreprocessor
 	}
 
 	private var _lastRetExpr:Null<TypedExpr> = null;
+
 	public function getReturnExpr(expr:TypedExpr):TypedExpr
 	{
 		_lastRetExpr = null;
@@ -210,7 +209,7 @@ class LuaMultiReturnPatch extends BasePreprocessor
 
 	private function _iterExpr(expr:TypedExpr):Void
 	{
-		switch(expr.expr)
+		switch (expr.expr)
 		{
 			case TReturn(e):
 				_lastRetExpr = expr;
@@ -219,6 +218,5 @@ class LuaMultiReturnPatch extends BasePreprocessor
 				TypedExprTools.iter(expr, getReturnExpr);
 		}
 	}
-
 }
 #end

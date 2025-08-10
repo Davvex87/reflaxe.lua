@@ -1,14 +1,8 @@
 package rluacompiler;
 
 #if (macro || rlua_runtime)
-
-// Make sure this code only exists at compile-time.
 import rluacompiler.subcompilers.*;
-
-// Import relevant Haxe macro types.
 import haxe.macro.Type;
-
-// Import Reflaxe types
 import reflaxe.DirectToStringCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
@@ -20,8 +14,8 @@ import reflaxe.data.EnumOptionData;
 	This must extend from `BaseCompiler`. `PluginCompiler<T>` is a child class
 	that provides the ability for people to make plugins for your compiler.
 **/
-class Compiler extends DirectToStringCompiler {
-
+class Compiler extends DirectToStringCompiler
+{
 	public var classesSubCompiler:Classes;
 	public var fieldsSubCompiler:Fields;
 	public var expressionsSubCompiler:Expressions;
@@ -44,7 +38,7 @@ class Compiler extends DirectToStringCompiler {
 
 		https://api.haxe.org/haxe/macro/ClassType.html
 	**/
-	public function compileClassImpl(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<String>
+	public function compileClassImpl(classType:ClassType, varFields:Array<ClassVarData>, funcFields:Array<ClassFuncData>):Null<String>
 	{
 		return classesSubCompiler.compileClassImpl(classType, varFields, funcFields);
 	}
@@ -52,10 +46,10 @@ class Compiler extends DirectToStringCompiler {
 	/**
 		Works just like `compileClassImpl`, but for Haxe enums.
 		Since we're returning `null` here, all Haxe enums are ignored.
-		
+
 		https://api.haxe.org/haxe/macro/EnumType.html
 	**/
-	public function compileEnumImpl(enumType: EnumType, constructs: Array<EnumOptionData>): Null<String>
+	public function compileEnumImpl(enumType:EnumType, constructs:Array<EnumOptionData>):Null<String>
 	{
 		return enumsSubCompiler.compileEnumImpl(enumType, constructs);
 	}
@@ -63,17 +57,16 @@ class Compiler extends DirectToStringCompiler {
 	/**
 		This is the final required function.
 		It compiles the expressions generated from Haxe.
-		
+
 		PLEASE NOTE: to recusively compile sub-expressions:
 			BaseCompiler.compileExpression(expr: TypedExpr): Null<String>
 			BaseCompiler.compileExpressionOrError(expr: TypedExpr): String
-		
+
 		https://api.haxe.org/haxe/macro/TypedExpr.html
 	**/
-	public function compileExpressionImpl(expr: TypedExpr, topLevel: Bool): Null<String>
+	public function compileExpressionImpl(expr:TypedExpr, topLevel:Bool):Null<String>
 	{
 		return expressionsSubCompiler.compileExpressionImpl(expr, 0);
 	}
 }
-
 #end

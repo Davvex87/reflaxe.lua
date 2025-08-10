@@ -1,13 +1,13 @@
 package rluacompiler.preprocessors.implementations;
 
-import haxe.macro.Context;
-import haxe.macro.TypedExprTools;
 #if (macro || rlua_runtime)
 import reflaxe.BaseCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.preprocessors.BasePreprocessor;
 import haxe.macro.Expr;
 import haxe.macro.Type;
+import haxe.macro.Context;
+import haxe.macro.TypedExprTools;
 
 class Lua51LoopContinuePatch extends BasePreprocessor
 {
@@ -41,10 +41,9 @@ class Lua51LoopContinuePatch extends BasePreprocessor
 		}
 	}
 
-
 	public function processExprInLoop(expr:TypedExpr):TypedExprDef
 	{
-		var loopExpression:TypedExpr = switch(expr.expr)
+		var loopExpression:TypedExpr = switch (expr.expr)
 		{
 			case TWhile(econd, e, normalWhile):
 				e;
@@ -59,10 +58,13 @@ class Lua51LoopContinuePatch extends BasePreprocessor
 		{
 			switch (expr.expr)
 			{
-				case TContinue: hasContinue = true;
-				case TBreak: hasBreak = true;
+				case TContinue:
+					hasContinue = true;
+				case TBreak:
+					hasBreak = true;
 				case TFunction(tfunc):
-				default: TypedExprTools.iter(expr, exprCheck);
+				default:
+					TypedExprTools.iter(expr, exprCheck);
 			}
 		}
 
@@ -94,7 +96,7 @@ class Lua51LoopContinuePatch extends BasePreprocessor
 		}
 
 		es.push({
-			expr: switch(expr.expr)
+			expr: switch (expr.expr)
 			{
 				case TWhile(econd, e, normalWhile):
 					e = repExpr(e, hasContinue ? breakVar : null);
@@ -107,8 +109,7 @@ class Lua51LoopContinuePatch extends BasePreprocessor
 						});
 						TWhile(econd, loopExpr, normalWhile);
 					}
-					else
-						TWhile(econd, e, normalWhile);
+					else TWhile(econd, e, normalWhile);
 				case TFor(v, e1, e2):
 					e2 = repExpr(e2, hasContinue ? breakVar : null);
 					if (hasContinue)
@@ -120,8 +121,7 @@ class Lua51LoopContinuePatch extends BasePreprocessor
 						});
 						TFor(v, e1, loopExpr);
 					}
-					else
-						TFor(v, e1, e2);
+					else TFor(v, e1, e2);
 				case _:
 					throw "Expression is not a loop, something must've gone terribly wrong during compilation, please file an issue here: https://github.com/Davvex87/reflaxe.lua/issues/new";
 			},
@@ -133,17 +133,14 @@ class Lua51LoopContinuePatch extends BasePreprocessor
 		{
 			blockEx.push({
 				expr: TIf({
-						expr: TBinop(OpEq,
-							{expr: TLocal(breakVar), pos: expr.pos, t: expr.t},
-							{expr: TConst(TBool(true)), pos: expr.pos, t: expr.t}
-						),
-						pos: expr.pos,
-						t: expr.t
-					},{
-						expr: TBreak,
-						pos: expr.pos,
-						t: expr.t
-					}, null),
+					expr: TBinop(OpEq, {expr: TLocal(breakVar), pos: expr.pos, t: expr.t}, {expr: TConst(TBool(true)), pos: expr.pos, t: expr.t}),
+					pos: expr.pos,
+					t: expr.t
+				}, {
+					expr: TBreak,
+					pos: expr.pos,
+					t: expr.t
+				}, null),
 				pos: expr.pos,
 				t: expr.t
 			});
@@ -170,7 +167,7 @@ class Lua51LoopContinuePatch extends BasePreprocessor
 						pos: expr.pos,
 						t: expr.t
 					};
-					
+
 				return {
 					expr: TBlock([
 						{
@@ -195,7 +192,6 @@ class Lua51LoopContinuePatch extends BasePreprocessor
 					pos: expr.pos,
 					t: expr.t
 				};
-
 
 			default:
 				return TypedExprTools.map(expr, (f:TypedExpr) -> repExpr(f, breakVar));

@@ -1,31 +1,31 @@
 package rluacompiler.subcompilers;
 
-import reflaxe.helpers.ArrayHelper;
 #if (macro || rlua_runtime)
-
-import haxe.macro.Type;
-
-// Import Reflaxe types
 import reflaxe.DirectToStringCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.EnumOptionData;
+import reflaxe.helpers.ArrayHelper;
+import haxe.macro.Type;
 
 using StringTools;
 
-class Fields extends SubCompiler {
-	
-	private function indent(depth: Int): String {
+class Fields extends SubCompiler
+{
+	private function indent(depth:Int):String
+	{
 		return [for (_ in 0...depth) "\t"].join("");
 	}
-	
-	private function indentLines(str: String, depth: Int): String {
-		if (depth == 0) return str;
+
+	private function indentLines(str:String, depth:Int):String
+	{
+		if (depth == 0)
+			return str;
 		var lines = str.split("\n");
 		return lines.map(line -> line.length > 0 ? indent(depth) + line : line).join("\n");
 	}
 
-	public function compileStaticImpl(varf: ClassVarData): Null<String>
+	public function compileStaticImpl(varf:ClassVarData):Null<String>
 	{
 		var output = '${varf.classType.name}.${varf.field.name}';
 		if (varf.field.expr() != null)
@@ -33,7 +33,7 @@ class Fields extends SubCompiler {
 		return output + "\n";
 	}
 
-	public function compileFuncImpl(func: ClassFuncData): Null<String>
+	public function compileFuncImpl(func:ClassFuncData):Null<String>
 	{
 		var output = "";
 		var argsStr = "";
@@ -44,7 +44,7 @@ class Fields extends SubCompiler {
 
 		for (arg in func.args)
 		{
-			var name = switch(arg.type)
+			var name = switch (arg.type)
 			{
 				case TAbstract(t, _) if (t.get().name == "Rest" && ArrayHelper.equals(t.get().pack, ["haxe"])):
 					restArgs.push(arg.getName());
@@ -54,17 +54,17 @@ class Fields extends SubCompiler {
 			}
 			argsStr += name + (func.args.indexOf(arg) < func.args.length - 1 ? ", " : "");
 		}
-		
+
 		output += 'function ${clsName}${isDotMethod(func) ? "." : ":"}${funcName}(${argsStr})\n\t';
-		
-		// Compile the function body with proper indentation
+
 		var bodyCode = "";
-		
+
 		if (func.field.meta.has(":functionCode"))
 		{
-			var code = switch (func.field.meta.extract(":functionCode")[0].params[0].expr) {
-    			case EConst(CString(s)): s;
-    			case _: throw "Expected a string literal";
+			var code = switch (func.field.meta.extract(":functionCode")[0].params[0].expr)
+			{
+				case EConst(CString(s)): s;
+				case _: throw "Expected a string literal";
 			};
 			bodyCode = code;
 		}
@@ -84,10 +84,9 @@ class Fields extends SubCompiler {
 		return output;
 	}
 
-	public function isDotMethod(func: ClassFuncData): Bool
+	public function isDotMethod(func:ClassFuncData):Bool
 	{
 		return func.isStatic || func.field.meta.has(":luaDotMethod");
 	}
 }
-
 #end

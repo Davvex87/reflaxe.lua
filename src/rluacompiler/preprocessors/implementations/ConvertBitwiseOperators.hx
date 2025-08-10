@@ -1,17 +1,18 @@
 package rluacompiler.preprocessors.implementations;
 
-import haxe.macro.TypedExprTools;
 #if (macro || rlua_runtime)
 import reflaxe.BaseCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.preprocessors.BasePreprocessor;
 import haxe.macro.Expr;
 import haxe.macro.Type;
+import haxe.macro.TypedExprTools;
 
 class ConvertBitwiseOperators extends BasePreprocessor
 {
 	var inlineMethod:String;
 	var options:BitwiseOperatorsProxyOptions;
+
 	public function new(inlineMethod:String, options:BitwiseOperatorsProxyOptions)
 	{
 		this.inlineMethod = inlineMethod;
@@ -24,7 +25,7 @@ class ConvertBitwiseOperators extends BasePreprocessor
 	}
 
 	function getOpProxy(op:Binop):Null<String>
-		return switch(op)
+		return switch (op)
 		{
 			case OpAnd: options.opAnd;
 			case OpOr: options.opOr;
@@ -37,15 +38,19 @@ class ConvertBitwiseOperators extends BasePreprocessor
 
 	public function processExpr(expr:TypedExpr):TypedExpr
 	{
-		switch(expr.expr)
+		switch (expr.expr)
 		{
-			case TBinop(op, e1, e2): //TODO: Maybe use as TField instead of a TIdent here?
+			case TBinop(op, e1, e2): // TODO: Maybe use as TField instead of a TIdent here?
 				e1 = processExpr(e1);
 				e2 = processExpr(e2);
 
 				if (op.match(OpAssignOp(_)))
 				{
-					var opFnCall = getOpProxy(switch(op) {case OpAssignOp(op2): op2; case _: null;});
+					var opFnCall = getOpProxy(switch (op)
+					{
+						case OpAssignOp(op2): op2;
+						case _: null;
+					});
 					if (opFnCall != null)
 					{
 						return {
@@ -84,7 +89,7 @@ class ConvertBitwiseOperators extends BasePreprocessor
 				e = processExpr(e);
 				if (op.match(OpNegBits))
 					return {
-						expr: TCall({ //TODO: Maybe use as TField instead of a TIdent here?
+						expr: TCall({ // TODO: Maybe use as TField instead of a TIdent here?
 							expr: TIdent(StringTools.replace(inlineMethod, "{op}", options.opNegBits)),
 							pos: expr.pos,
 							t: expr.t
