@@ -80,7 +80,7 @@ class Classes extends SubCompiler
 			if (hasInstField)
 			{
 				output += 'function ${classType.name}.new(...)\n';
-				output += '\tlocal self = setmetatable({__tostring = function(self) return "${classType.name}" end; __class__ = ${classType.name}}, ${classType.name})\n\tself:__constructor(...)\n\treturn self\n';
+				output += '\tlocal self = setmetatable({}, {__index = ${classType.name}; __tostring = function(self) if self["toString"] ~= nil then return self:toString() end return "${classType.name}" end})\n\tself:__constructor(...)\n\treturn self\n';
 				output += 'end\n';
 			}
 
