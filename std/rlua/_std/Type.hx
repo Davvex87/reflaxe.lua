@@ -23,6 +23,7 @@ class Type
 		if (o == null)
 			return null;
 
+		// FIXME: This generates wrong lua code, help??
 		if (Std.isOfType(o, Array))
 			return cast Array; // Class<Array> should be Class<getClass.T>
 		else if (Std.isOfType(o, String))

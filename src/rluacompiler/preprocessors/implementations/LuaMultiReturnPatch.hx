@@ -104,7 +104,6 @@ class LuaMultiReturnPatch extends BasePreprocessor
 					pos: expr.pos,
 					t: expr.t
 				};
-			// TODO: This, check out src/rluacompiler/subcompilers/Expressions.hx:182
 
 			default:
 				return TypedExprTools.map(expr, processExpr);
