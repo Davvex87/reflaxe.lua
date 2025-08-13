@@ -58,7 +58,7 @@ Main.__index = Main
 function Main.main()
 	local arr = {1, 2, 5}
 	table.insert(arr, 8)
-	print(arr[3], {
+	Log.trace(arr[3], {
 		fileName = "Code.hx",
 		lineNumber = 300,
 		className = "Main",
@@ -72,6 +72,7 @@ end
 ## Table of Contents
 - [Introduction](#reflaxe.lua)
   - [Example](#example)
+- [Progress](#progress)
 - [Setup](#setup)
   - [Installing the library](#installing-the-library)
   - [Adding to project](#adding-to-project)
@@ -80,6 +81,33 @@ end
 - [Usage](#usage)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
+
+# Progress
+
+### Code Generation Efficiency
+How optimized the generated output is compared to naturally written Lua.
+
+![75](https://progress-bar.xyz/75/?width=200)
+
+### Lua API Coverage
+How much of Lua's API is covered by Reflaxe.lua.
+
+![5](https://progress-bar.xyz/5/?width=200)
+
+### Haxe Std Library Coverage
+How complete are the Std Library's Lua bindings.
+
+![30](https://progress-bar.xyz/30/?width=200)
+
+### Haxe Primitives & Types
+How many of Haxe's primitive and support types are implemented.
+
+![70](https://progress-bar.xyz/70/?width=200)
+
+### Haxe Language Features Support
+How many of Haxe's language features are correctly compiled to their Lua alternatives.
+
+![80](https://progress-bar.xyz/80/?width=200)
 
 # Setup
 
