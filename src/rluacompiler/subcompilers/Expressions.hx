@@ -97,7 +97,9 @@ class Expressions extends SubCompiler
 						}
 						'${exprImpl(e)}${accessor}${field.name}';
 					case FStatic(c, cf):
-						if (c.get().name.length == 0) cf.get().name; else '${c.get().name}.${cf.get().name}';
+						if (c.get()
+							.name.endsWith("_Fields_") && cf.get()
+							.isExtern) cf.get().name; else if (c.get().name.length == 0) cf.get().name; else '${c.get().name}.${cf.get().name}';
 					case FAnon(cf):
 						'${exprImpl(e)}.${cf.get().name}';
 					case FDynamic(s):
