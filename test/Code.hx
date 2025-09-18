@@ -34,7 +34,7 @@ class TestClass implements TestInterface
 		trace("Create Code class! " + arg1);
 		field = arg2 ?? Two;
 		untyped print(rest);
-		untyped print(rest.toArray);
+		untyped print(rest.toArray());
 		untyped print(rest.length);
 
 		var arr = [1, 2, 5];
@@ -62,6 +62,14 @@ class TestClass implements TestInterface
 			for (num in arr)
 				untyped print(num * 2);
 		 */
+
+		var myMap:Map<String, Float> = new Map();
+		myMap.set("key", 69.420);
+		untyped print(myMap.get("key"));
+		myMap.set("name", 70.420);
+		untyped print(myMap["name"]);
+		myMap.remove("key");
+		untyped print(myMap.get("key"));
 
 		var n = 10;
 		while (n > 2)

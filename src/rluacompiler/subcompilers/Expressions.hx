@@ -73,7 +73,9 @@ class Expressions extends SubCompiler
 					case _:
 						null;
 				}
-				if (num != null) '${exprImpl(e1)}[${num + 1}]'; else '${exprImpl(e1)}[${exprImpl(e2)}+1]';
+				var m = getTypeMetadatas(e1.t);
+				var arr = m?.has("luaIndexArray");
+				if (num != null) '${exprImpl(e1)}[${num + (arr ? 1 : 0)}]'; else '${exprImpl(e1)}[${exprImpl(e2)}${arr ? '+1' : ''}]';
 
 			case TBinop(op, e1, e2):
 				switch (op)
@@ -523,6 +525,29 @@ class Expressions extends SubCompiler
 			case TReturn(e): e != null && isStringExpr(e.expr);
 			case _:
 				false;
+		}
+
+	public function getTypeMetadatas(t:Type):Null<MetaAccess>
+		return switch (t)
+		{
+			case TMono(ty):
+				getTypeMetadatas(ty.get());
+			case TEnum(t, _):
+				t.get().meta;
+			case TInst(t, _):
+				t.get().meta;
+			case TType(t, _):
+				t.get().meta;
+			case TFun(_, _):
+				null;
+			case TAnonymous(_):
+				null;
+			case TDynamic(ty):
+				if (ty == null) null; else getTypeMetadatas(ty);
+			case TLazy(_):
+				null;
+			case TAbstract(t, _):
+				t.get().meta;
 		}
 
 	public function compileOperatorImpl(op:Binop, e1:TypedExpr, e2:TypedExpr)

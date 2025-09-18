@@ -5,6 +5,7 @@ import rlua.Syntax;
 import haxe.iterators.ArrayIterator;
 import haxe.iterators.ArrayKeyValueIterator;
 
+@:luaIndexArray
 extern class Array<T>
 {
 	var length(get, never):Int;
@@ -54,7 +55,7 @@ extern class Array<T>
 	inline function remove(x:T):Bool
 		return ArrayTools.safeRemove(this, x);
 
-	inline function contains( x : T ) : Bool
+	inline function contains(x:T):Bool
 		return ArrayTools.find(this, x) != null;
 
 	inline function indexOf(x:T, ?fromIndex:Int):Int
