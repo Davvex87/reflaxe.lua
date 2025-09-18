@@ -6,4 +6,5 @@
 		"editor.wordWrapColumn": 130
 	},
 	"files.eol": "\n",
+	"files.insertFinalNewline": true
 }
