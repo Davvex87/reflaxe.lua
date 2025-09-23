@@ -202,6 +202,6 @@ extern class NextResult<K, V>
 @:multiReturn
 extern class PCallResult
 {
-	var status:Bool;
+	var success:Bool;
 	var value:Dynamic;
 }

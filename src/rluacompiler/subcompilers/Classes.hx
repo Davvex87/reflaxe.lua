@@ -58,7 +58,7 @@ class Classes extends SubCompiler
 
 			for (f in varFields)
 			{
-				if (f.getter != null || f.setter != null)
+				if (f.getter != null && f.setter != null)
 				{
 					trace(f.getter.name);
 					trace(f.setter.name);
