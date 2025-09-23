@@ -37,7 +37,8 @@ class CompilerInit
 					opNegBits: "bnot"
 				})),
 			Custom(new Lua51LoopContinuePatch()),
-			Custom(new LuaMultiReturnPatch())
+			Custom(new LuaMultiReturnPatch()),
+			Custom(new ExprBinopFix())
 		],
 		fileOutputExtension: ".lua",
 		outputDirDefineName: "lua-output",
