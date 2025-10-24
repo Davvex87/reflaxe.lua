@@ -1,6 +1,7 @@
 package rluacompiler.subcompilers;
 
 #if (macro || rlua_runtime)
+import rluacompiler.utils.LuaVUtils;
 import reflaxe.DirectToStringCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
@@ -16,6 +17,18 @@ using StringTools;
 
 class Expressions extends SubCompiler
 {
+	function getOpProxy(op:Binop):Null<String>
+		return switch (op)
+		{
+			case OpAnd: LuaVUtils.bitFuncField.opAnd;
+			case OpOr: LuaVUtils.bitFuncField.opOr;
+			case OpXor: LuaVUtils.bitFuncField.opXor;
+			case OpShl: LuaVUtils.bitFuncField.opShl;
+			case OpShr: LuaVUtils.bitFuncField.opShr;
+			case OpUShr: LuaVUtils.bitFuncField.opUShr;
+			case _: null;
+		}
+
 	public function compileExpressionImpl(expr:TypedExpr, depth:Int, ?previous:TypedExpr):Null<String>
 	{
 		function exprImpl(e:TypedExpr, depthOffset:Int = 0):Null<String>
@@ -81,9 +94,15 @@ class Expressions extends SubCompiler
 				switch (op)
 				{
 					case OpAssignOp(op):
-						'${exprImpl(e1)} = ${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
+						var opFnCall = getOpProxy(op);
+						if (opFnCall != null)
+							return '${exprImpl(e1)} = ${StringTools.replace(LuaVUtils.bitFuncPattern, "{op}", opFnCall)}(${exprImpl(e1)}, ${exprImpl(e2)})';
+						return '${exprImpl(e1)} = ${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
 					default:
-						'${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
+						var opFnCall = getOpProxy(op);
+						if (opFnCall != null)
+							return '${StringTools.replace(LuaVUtils.bitFuncPattern, "{op}", opFnCall)}(${exprImpl(e1)}, ${exprImpl(e2)})';
+						return '${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
 				}
 
 			case TField(e, fa):
@@ -216,8 +235,8 @@ class Expressions extends SubCompiler
 					case OpNeg:
 						'-${exprImpl(e)}';
 
-					case OpNegBits: // Moved to src/rluacompiler/preprocessors/implementations/ConvertBitwiseOperators.hx
-						'~${exprImpl(e)}';
+					case OpNegBits:
+						'${StringTools.replace(LuaVUtils.bitFuncPattern, "{op}", LuaVUtils.bitFuncField.opNegBits)}(${exprImpl(e)})';
 
 					default:
 						throw 'Unary operator ${op} not implemented';

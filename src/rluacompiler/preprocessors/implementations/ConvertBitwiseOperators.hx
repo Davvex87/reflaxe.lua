@@ -7,6 +7,7 @@ import reflaxe.preprocessors.BasePreprocessor;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.macro.TypedExprTools;
+import rluacompiler.utils.LuaVUtils;
 
 class ConvertBitwiseOperators extends BasePreprocessor
 {
@@ -104,44 +105,5 @@ class ConvertBitwiseOperators extends BasePreprocessor
 				return TypedExprTools.map(expr, processExpr);
 		}
 	}
-}
-
-@:structInit
-class BitwiseOperatorsProxyOptions
-{
-	/**
-		`&`
-	**/
-	public var opAnd:String;
-
-	/**
-		`|`
-	**/
-	public var opOr:String;
-
-	/**
-		`^`
-	**/
-	public var opXor:String;
-
-	/**
-		`<<`
-	**/
-	public var opShl:String;
-
-	/**
-		`>>`
-	**/
-	public var opShr:String;
-
-	/**
-		`>>>`
-	**/
-	public var opUShr:String;
-
-	/**
-		`~`
-	**/
-	public var opNegBits:String;
 }
 #end

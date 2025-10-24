@@ -6,6 +6,7 @@ import reflaxe.preprocessors.ExpressionPreprocessor;
 import rluacompiler.preprocessors.implementations.*;
 import reflaxe.BaseCompiler;
 import reflaxe.BaseCompiler.BaseCompilerOptions;
+import rluacompiler.utils.LuaVUtils;
 
 class CompilerInit
 {
@@ -26,16 +27,7 @@ class CompilerInit
 			RemoveTemporaryVariables(AllOneUseVariables),
 			RemoveTemporaryVariables(AllTempVariables),
 			MarkUnusedVariables,
-			Custom(new ConvertBitwiseOperators(#if lua_bit32 "bit32.{op}" #else "bit.{op}" #end,
-				{
-					opAnd: "band",
-					opOr: "bor",
-					opXor: "bxor",
-					opShl: "lshift",
-					opShr: "arshift",
-					opUShr: "rshift",
-					opNegBits: "bnot"
-				})),
+			Custom(new ConvertBitwiseOperators(LuaVUtils.bitFuncPattern, LuaVUtils.bitFuncField)),
 			Custom(new Lua51LoopContinuePatch()),
 			Custom(new LuaMultiReturnPatch()),
 			Custom(new ExprBinopFix())
