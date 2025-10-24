@@ -88,6 +88,7 @@ end
 How optimized the generated output is compared to naturally written Lua.
 
 ![75](https://progress-bar.xyz/75/?width=200)
+
 Generation Problems:
 - Unary operator overhead through unnecessary function calls
 - OpAssignOp (+=, -=, &=, etc..) overhead through unnecessary function calls
@@ -97,6 +98,7 @@ Generation Problems:
 How much of Lua's API is covered by Reflaxe.lua.
 
 ![80](https://progress-bar.xyz/80/?width=200)
+
 Missing:
 - table (native)
 - string (native)
@@ -105,6 +107,7 @@ Missing:
 How complete are the Std Library's Lua bindings.
 
 ![60](https://progress-bar.xyz/60/?width=200)
+
 Missing:
 - net (requires external lib)
 - EReg (somewhat broken)
@@ -113,6 +116,7 @@ Missing:
 How many of Haxe's primitive and support types are implemented.
 
 ![70](https://progress-bar.xyz/70/?width=200)
+
 Missing:
 - Abstracts
 - Abstract Classes
@@ -121,6 +125,7 @@ Missing:
 How many of Haxe's language features are correctly compiled to their Lua alternatives.
 
 ![80](https://progress-bar.xyz/80/?width=200)
+
 - Getters/Setters (somewhat broken)
 
 # Setup
