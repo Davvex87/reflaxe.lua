@@ -35,6 +35,9 @@ class Fields extends SubCompiler
 
 	public function compileFuncImpl(func:ClassFuncData):Null<String>
 	{
+		if (func.field.isAbstract)
+			return null;
+
 		var output = "";
 		var argsStr = "";
 		var clsName = func.classType.name;
