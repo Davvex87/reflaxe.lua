@@ -115,18 +115,15 @@ Missing:
 ### Haxe Primitives & Types
 How many of Haxe's primitive and support types are implemented.
 
-![70](https://progress-bar.xyz/70/?width=200)
-
-Missing:
-- Abstracts
-- Abstract Classes
+![100](https://progress-bar.xyz/100/?width=200)
 
 ### Haxe Language Features Support
 How many of Haxe's language features are correctly compiled to their Lua alternatives.
 
-![80](https://progress-bar.xyz/80/?width=200)
+![98](https://progress-bar.xyz/98/?width=200)
 
-- Getters/Setters (somewhat broken)
+Missing:
+- There are some issues with the @:arrayAccess metadata
 
 # Setup
 

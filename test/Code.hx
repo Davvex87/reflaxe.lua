@@ -1,5 +1,8 @@
 package;
 
+import pkg.MyAbstractNumber;
+import pkg.entities.CoolEntity;
+import pkg.entities.AbstractEntity;
 import rlua.Coroutine;
 import rlua.Os;
 
@@ -85,12 +88,6 @@ class TestClass implements TestInterface
 				continue;
 		}
 
-		otherArray[n] = (Std.int(myMap.get("name")) & 0xFF);
-		var e = (Std.int(myMap.get("name")) & 0xFF);
-		untyped print(otherArray);
-		untyped print(e);
-		untyped print(e);
-
 		while (n > 2)
 		{
 			n -= 1;
@@ -129,6 +126,22 @@ class TestClass implements TestInterface
 				}
 			}
 		}
+
+		var absNum:MyAbstractNumber = 124;
+		untyped print(absNum.isEven());
+		var gcdResult = absNum.gcd(56);
+		untyped print(gcdResult);
+
+		var num:Int = absNum;
+		untyped print(num);
+
+		var newAbsNumber:MyAbstractNumber = MyAbstractNumber.randomBetween(10, 50);
+		var res:Int = newAbsNumber.sumDigits();
+		untyped print(newAbsNumber + res);
+
+		var ent:CoolEntity = new CoolEntity(3);
+		ent.special();
+		ent.attack(ent);
 	}
 
 	public function increment(i:Int)
