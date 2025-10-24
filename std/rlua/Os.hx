@@ -86,15 +86,13 @@ extern class Os
 
 typedef TimeParam =
 {
-	var ?hour:Int;
-	var ?min:Int;
-	var wday:Int;
-	var day:Int;
-	var month:Int;
-	var year:Int;
-	var ?sec:Int;
-	var yday:Int;
-	var ?isdst:Bool;
+	year:Int,
+	month:Int,
+	day:Int,
+	?hour:Int,
+	?min:Int,
+	?sec:Int,
+	?isdst:Bool
 }
 
 typedef DateResult =

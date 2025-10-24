@@ -48,6 +48,12 @@ class TestClass implements TestInterface
 			untyped print(num);
 		}
 
+		var a = new Array();
+		for (i in 0...arr.length)
+			a.push(i);
+
+		trace(a);
+
 		var otherArray:Array<Int> = new Array<Int>();
 		otherArray.push(8);
 		otherArray.pop();
@@ -55,7 +61,7 @@ class TestClass implements TestInterface
 		untyped print(otherArray.concat(arr));
 
 		var e:Dynamic = cast "TestStr";
-		untyped print(e + 20); // "print(e + 20)"
+		untyped print(e & 20); // "print(e + 20)"
 		untyped print(cast(e, String) + 20); // "print(e .. 20)"
 
 		/*
@@ -78,6 +84,12 @@ class TestClass implements TestInterface
 			if (n == 5)
 				continue;
 		}
+
+		otherArray[n] = (Std.int(myMap.get("name")) & 0xFF);
+		var e = (Std.int(myMap.get("name")) & 0xFF);
+		untyped print(otherArray);
+		untyped print(e);
+		untyped print(e);
 
 		while (n > 2)
 		{

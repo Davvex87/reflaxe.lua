@@ -92,12 +92,12 @@ How optimized the generated output is compared to naturally written Lua.
 ### Lua API Coverage
 How much of Lua's API is covered by Reflaxe.lua.
 
-![5](https://progress-bar.xyz/5/?width=200)
+![40](https://progress-bar.xyz/5/?width=200)
 
 ### Haxe Std Library Coverage
 How complete are the Std Library's Lua bindings.
 
-![30](https://progress-bar.xyz/30/?width=200)
+![60](https://progress-bar.xyz/30/?width=200)
 
 ### Haxe Primitives & Types
 How many of Haxe's primitive and support types are implemented.
