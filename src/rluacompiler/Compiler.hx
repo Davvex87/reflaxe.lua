@@ -173,7 +173,7 @@ class Compiler extends DirectToStringCompiler
 			head.push('package.loaded["${moduleId}"] = {${decls.map(t -> t.name).join(", ")}}');
 
 			var t = usedTypesPerModule.get(moduleId) ?? new Map<String, Array<BaseType>>();
-			head.push(modulesSubCompiler.compileImports(moduleId, t));
+			head.push(modulesSubCompiler.compileImports(moduleId, t, files));
 
 			var finalOutputList = head.concat(outputList);
 
