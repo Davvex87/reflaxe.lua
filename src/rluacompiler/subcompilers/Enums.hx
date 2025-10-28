@@ -16,27 +16,47 @@ class Enums extends SubCompiler
 
 		var output = "";
 
-		output += 'local ${enumType.name}\n${enumType.name} = setmetatable({\n';
-
 		var i = 0;
 		for (constr in constructs)
 		{
 			if (constr.args.length == 0)
-				output += '\t${constr.name} = setmetatable('
+				output += '${enumType.name}.${constr.name} = setmetatable('
 					+ '{_index=${i++}, __name__="${constr.name}",__enum__=${enumType.name}},'
-					+ '{__tostring=function(self)return"${enumType.name}.${constr.name}"end}),\n';
+					+ '{__tostring=function(self)return"${enumType.name}.${constr.name}"end})\n';
 			else
 			{
 				var aI:Int = 0;
 				var args:Array<String> = constr.args.map((f) -> '[${++aI}]=' + constr.args[aI - 1].name);
-				output += '\t${constr.name} = function(${constr.args.map((f) -> f.name).join(",")})'
+				output += '${enumType.name}.${constr.name} = function(${constr.args.map((f) -> f.name).join(",")})'
 					+ 'return setmetatable('
 					+ '{_index=${i++},${args.join(",")}, __name__="${constr.name}",__enum__=${enumType.name}},'
-					+ '{__tostring=function(self)return"${enumType.name}.${constr.name}"end})end,\n';
+					+ '{__tostring=function(self)return"${enumType.name}.${constr.name}"end})end\n';
 			}
 		}
 
-		output += '}, {\n\t__tostring = function(self)\n\t\treturn "Enum<${enumType.name}>"\n\tend\n})\n';
+		output += 'setmetatable(${enumType.name}, {\n\t__tostring = function(self)\n\t\treturn "Enum<${enumType.name}>"\n\tend\n})\n';
+
+		/*
+			output += 'local ${enumType.name}\n${enumType.name} = setmetatable({\n';
+
+			var i = 0;
+			for (constr in constructs)
+			{
+				if (constr.args.length == 0)
+					output += '\t${constr.name} = setmetatable('
+						+ '{_index=${i++}, __name__="${constr.name}",__enum__=${enumType.name}},'
+						+ '{__tostring=function(self)return"${enumType.name}.${constr.name}"end}),\n';
+				else
+				{
+					var aI:Int = 0;
+					var args:Array<String> = constr.args.map((f) -> '[${++aI}]=' + constr.args[aI - 1].name);
+					output += '\t${constr.name} = function(${constr.args.map((f) -> f.name).join(",")})'
+						+ 'return setmetatable('
+						+ '{_index=${i++},${args.join(",")}, __name__="${constr.name}",__enum__=${enumType.name}},'
+						+ '{__tostring=function(self)return"${enumType.name}.${constr.name}"end})end,\n';
+				}
+		}*/
+
 		output += '${enumType.name}.__index = ${enumType.name}\n';
 		output += '${enumType.name}.__name__ = "${enumType.name}"\n';
 		output += '${enumType.name}.__fenum__ = {${constructs.map((f) -> '"${f.name}"').join(", ")}}\n';

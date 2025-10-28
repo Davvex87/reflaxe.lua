@@ -12,13 +12,16 @@ class Classes extends SubCompiler
 {
 	public function compileClassImpl(classType:ClassType, varFields:Array<ClassVarData>, funcFields:Array<ClassFuncData>):Null<String>
 	{
-		if (varFields.length == 0 && funcFields.length == 0)
+		if (varFields.length == 0 && funcFields.length == 0 && (classType.isExtern || classType.meta.has("native")))
 			return null;
 
 		var output = "";
 		var superClassName:Null<String> = classType.superClass?.t?.get()?.name;
 
-		output += 'local ${classType.name} = setmetatable({}, {\n\t__tostring = function(self)\n\t\treturn "Class<${classType.name}>"\n\tend;\n';
+		/*
+			output += '${classType.name} = setmetatable({}, {\n\t__tostring = function(self)\n\t\treturn "Class<${classType.name}>"\n\tend;\n';
+		 */
+		output += 'setmetatable(${classType.name}, {\n\t__tostring = function(self)\n\t\treturn "Class<${classType.name}>"\n\tend;\n';
 
 		if (superClassName != null)
 			output += '\t__index = $superClassName;\n';

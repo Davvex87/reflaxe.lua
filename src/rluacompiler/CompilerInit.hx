@@ -34,7 +34,7 @@ class CompilerInit
 		],
 		fileOutputExtension: ".lua",
 		outputDirDefineName: "lua-output",
-		fileOutputType: FilePerModule,
+		fileOutputType: Manual,
 		reservedVarNames: [],
 		targetCodeInjectionName: "__lua__",
 		manualDCE: false,

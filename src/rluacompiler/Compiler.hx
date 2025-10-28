@@ -7,6 +7,13 @@ import reflaxe.DirectToStringCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.EnumOptionData;
+import rluacompiler.utils.TypeExtractor;
+import haxe.macro.Context;
+import reflaxe.output.OutputManager;
+import reflaxe.output.StringOrBytes;
+
+using reflaxe.helpers.BaseTypeHelper;
+using StringTools;
 
 /**
 	The class used to compile the Haxe AST into your target language's code.
@@ -20,6 +27,37 @@ class Compiler extends DirectToStringCompiler
 	public var fieldsSubCompiler:Fields;
 	public var expressionsSubCompiler:Expressions;
 	public var enumsSubCompiler:Enums;
+	public var modulesSubCompiler:Modules;
+
+	public var typesPerModule:Map<String, Array<BaseType>> = new Map<String, Array<BaseType>>();
+	public var usedTypesPerModule:Map<String, Map<String, Array<BaseType>>> = new Map<String, Map<String, Array<BaseType>>>();
+
+	function addTypesToMod(baseModule:String, types:Array<BaseType>)
+	{
+		var st = usedTypesPerModule.get(baseModule);
+		for (ut in types)
+		{
+			var found = false;
+			for (m => tar in st)
+			{
+				for (t in tar)
+					if (t.equals(ut))
+					{
+						found = true;
+						break;
+					}
+			}
+
+			if (!found)
+			{
+				if (!st.exists(ut.module))
+				{
+					st.set(ut.module, []);
+				}
+				st.get(ut.module).push(ut);
+			}
+		}
+	}
 
 	public function new()
 	{
@@ -27,6 +65,7 @@ class Compiler extends DirectToStringCompiler
 		fieldsSubCompiler = new Fields(this);
 		expressionsSubCompiler = new Expressions(this);
 		enumsSubCompiler = new Enums(this);
+		modulesSubCompiler = new Modules(this);
 
 		super();
 	}
@@ -40,7 +79,39 @@ class Compiler extends DirectToStringCompiler
 	**/
 	public function compileClassImpl(classType:ClassType, varFields:Array<ClassVarData>, funcFields:Array<ClassFuncData>):Null<String>
 	{
-		return classesSubCompiler.compileClassImpl(classType, varFields, funcFields);
+		if (!typesPerModule.exists(classType.module))
+			typesPerModule.set(classType.module, []);
+		typesPerModule.get(classType.module).push(classType);
+
+		var data = classesSubCompiler.compileClassImpl(classType, varFields, funcFields);
+
+		// if (data == null)
+		//	return null;
+
+		if (!usedTypesPerModule.exists(classType.module))
+			usedTypesPerModule.set(classType.module, new Map<String, Array<BaseType>>());
+
+		if (classType.superClass != null)
+			addTypesToMod(classType.module, [classType.superClass.t.get()]);
+
+		if (classType.interfaces.length > 0)
+			for (iface in classType.interfaces)
+				addTypesToMod(classType.module, [iface.t.get()]);
+
+		for (varf in varFields)
+		{
+			var e = varf.field.expr();
+			if (e != null)
+				addTypesToMod(classType.module, TypeExtractor.extractAllUsedTypes(e));
+		}
+		for (funcf in funcFields)
+		{
+			var e = funcf.expr;
+			if (e != null)
+				addTypesToMod(classType.module, TypeExtractor.extractAllUsedTypes(e));
+		}
+
+		return data;
 	}
 
 	/**
@@ -51,6 +122,10 @@ class Compiler extends DirectToStringCompiler
 	**/
 	public function compileEnumImpl(enumType:EnumType, constructs:Array<EnumOptionData>):Null<String>
 	{
+		if (!typesPerModule.exists(enumType.module))
+			typesPerModule.set(enumType.module, []);
+		typesPerModule.get(enumType.module).push(enumType);
+
 		return enumsSubCompiler.compileEnumImpl(enumType, constructs);
 	}
 
@@ -67,6 +142,45 @@ class Compiler extends DirectToStringCompiler
 	public function compileExpressionImpl(expr:TypedExpr, topLevel:Bool):Null<String>
 	{
 		return expressionsSubCompiler.compileExpressionImpl(expr, 0);
+	}
+
+	override public function generateFilesManually() @:privateAccess {
+		output.ensureOutputDirExists();
+
+		final files:Map<String, Array<StringOrBytes>> = [];
+		final types:Array<BaseType> = [];
+		for (c in generateOutputIterator())
+		{
+			trace(c.baseType.module);
+			trace(c.baseType.name);
+			final mid = c.baseType.module;
+			final filename = output.overrideFileName(mid, c);
+			if (!files.exists(filename))
+				files[filename] = [];
+
+			final f = files[filename];
+			if (f != null)
+				f.push(c.data);
+		}
+
+		for (moduleId => outputList in files)
+		{
+			var head:Array<StringOrBytes> = [];
+
+			var decls = typesPerModule.get(moduleId) ?? [];
+			head.push("local " + decls.map(t -> t.name).join(", ") + " = " + decls.map(t -> "{}").join(", ") + "");
+
+			head.push('package.loaded["${moduleId}"] = {${decls.map(t -> t.name).join(", ")}}');
+
+			var t = usedTypesPerModule.get(moduleId) ?? new Map<String, Array<BaseType>>();
+			head.push(modulesSubCompiler.compileImports(moduleId, t));
+
+			var finalOutputList = head.concat(outputList);
+
+			finalOutputList.push('\nreturn {${decls.map(t -> t.name).join(", ")}}');
+
+			output.saveFile(output.getFileName(moduleId.replace(".", "/")), OutputManager.joinStringOrBytes(finalOutputList));
+		}
 	}
 }
 #end
