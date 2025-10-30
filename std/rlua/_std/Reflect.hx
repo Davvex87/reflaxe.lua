@@ -4,6 +4,9 @@
 
 	@see https://haxe.org/manual/std-reflection.html
 **/
+
+import rlua.Runtime;
+
 class Reflect
 {
 	/**
@@ -14,12 +17,12 @@ class Reflect
 
 		If `o` or `field` are null, the result is unspecified.
 	**/
-	public static function hasField(o:Dynamic, field:String):Bool
-		untyped {
-			if (o == null || field == null)
-				return false;
-			return o[field] != null;
-		}
+	public static function hasField(o:Dynamic, field:String):Bool untyped
+	{
+		if (o == null || field == null)
+			return false;
+		return o[field] != null;
+	}
 
 	/**
 		Returns the value of the field named `field` on object `o`.
@@ -32,12 +35,12 @@ class Reflect
 
 		If `field` is null, the result is unspecified.
 	**/
-	public static function field(o:Dynamic, field:String):Dynamic
-		untyped {
-			if (o == null || field == null)
-				return null;
-			return o[field];
-		}
+	public static function field(o:Dynamic, field:String):Dynamic untyped
+	{
+		if (o == null || field == null)
+			return null;
+		return o[field];
+	}
 
 	/**
 		Sets the field named `field` of object `o` to value `value`.
@@ -47,10 +50,10 @@ class Reflect
 
 		If `o` or `field` are null, the result is unspecified.
 	**/
-	public static function setField(o:Dynamic, field:String, value:Dynamic):Void
-		untyped {
-			o[field] = value;
-		}
+	public static function setField(o:Dynamic, field:String, value:Dynamic):Void untyped
+	{
+		o[field] = value;
+	}
 
 	/**
 		Returns the value of the field named `field` on object `o`, taking
@@ -61,14 +64,14 @@ class Reflect
 
 		If `o` or `field` are null, the result is unspecified.
 	**/
-	public static function getProperty(o:Dynamic, field:String):Dynamic
-		untyped {
-			if (o == null || field == null)
-				return null;
-			if (Reflect.field(o, "get_" + field) != null)
-				return Reflect.callMethod(o, Reflect.field(o, "get_" + field), []);
-			return Reflect.field(o, field);
-		}
+	public static function getProperty(o:Dynamic, field:String):Dynamic untyped
+	{
+		if (o == null || field == null)
+			return null;
+		if (Reflect.field(o, "get_" + field) != null)
+			return Reflect.callMethod(o, Reflect.field(o, "get_" + field), []);
+		return Reflect.field(o, field);
+	}
 
 	/**
 		Sets the field named `field` of object `o` to value `value`, taking
@@ -79,15 +82,15 @@ class Reflect
 
 		If `field` is null, the result is unspecified.
 	**/
-	public static function setProperty(o:Dynamic, field:String, value:Dynamic):Void
-		untyped {
-			if (o == null || field == null)
-				return;
-			if (Reflect.field(o, "set_" + field) != null)
-				Reflect.callMethod(o, Reflect.field(o, "set_" + field), [value]);
-			else
-				o[field] = value;
-		}
+	public static function setProperty(o:Dynamic, field:String, value:Dynamic):Void untyped
+	{
+		if (o == null || field == null)
+			return;
+		if (Reflect.field(o, "set_" + field) != null)
+			Reflect.callMethod(o, Reflect.field(o, "set_" + field), [value]);
+		else
+			o[field] = value;
+	}
 
 	/**
 		Call a method `func` with the given arguments `args`.
@@ -109,12 +112,9 @@ class Reflect
 		else
 		{
 			var self_arg = false;
-			if (o != null && untyped(o.__class__) != null)
+			if (o != null && untyped (o.__class__) != null)
 				self_arg = true;
-			return if (self_arg)
-				func(o, untyped(table.unpack(args)));
-			else
-				func(untyped(table.unpack(args)));
+			return if (self_arg) func(o, untyped (table.unpack(args))); else func(untyped (table.unpack(args)));
 		}
 	}
 
@@ -202,7 +202,7 @@ class Reflect
 		Otherwise, including if `v` is null, the result is false.
 	**/
 	public static function isObject(v:Dynamic):Bool
-		untyped return type(v) == "table" && (v.__class__ != null || v.__enum__ != null || v.__name__ != null) && !Runtime.isArray(v);
+		return (untyped (type(v) == "table" && (v.__class__ != null || v.__enum__ != null || v.__name__ != null))) && !Runtime.isArray(v);
 
 	/**
 		Tells if `v` is an enum value.
@@ -222,13 +222,13 @@ class Reflect
 
 		If `o` or `field` are null, the result is unspecified.
 	**/
-	public static function deleteField(o:Dynamic, field:String):Bool
-		untyped {
-			if (!Reflect.hasField(o, field))
-				return false;
-			o[field] = null;
-			return true;
-		}
+	public static function deleteField(o:Dynamic, field:String):Bool untyped
+	{
+		if (!Reflect.hasField(o, field))
+			return false;
+		o[field] = null;
+		return true;
+	}
 
 	/**
 		Copies the fields of structure `o`.

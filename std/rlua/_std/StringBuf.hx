@@ -1,6 +1,7 @@
 class StringBuf
 {
 	var b:String;
+
 	public var length(get, never):Int;
 
 	inline function get_length():Int

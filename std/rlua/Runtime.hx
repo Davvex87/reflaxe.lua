@@ -17,16 +17,17 @@ class Runtime
 		if (!isTable(o) || isMetatable(o))
 			return false;
 
-		var count = 0;
-		var numeric = 0;
-		untyped __lua__('for k in pairs(t) do
+		untyped __lua__('
+local count = 0
+local numeric = 0
+for k in pairs(t) do
 	count = count + 1
 	if type(k) == "number" and k % 1 == 0 and k >= 1 then
 		numeric = numeric + 1
 	end
 end');
 
-		return (numeric == count);
+		return untyped (numeric == count);
 	}
 
 	public static function isObject(o:Dynamic):Bool

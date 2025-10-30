@@ -11,8 +11,7 @@ class ArrayTools
 	end
 	for i = 1, #{2} do
 		{1}[#{0} + i] = {2}[i]
-	end"
-		, a1, result, a2);
+	end", a1, result, a2);
 		return result;
 	}
 
@@ -27,8 +26,8 @@ class ArrayTools
 
 	public static function slice<T>(arr:Array<T>, pos:Int, ?endi:Int):Array<T>
 	{
-		var result = new Array<T>();
 		untyped __lua__("
+	local result = {}
 	if {1} == nil then {1} = 1
 	elseif {1} < 0 then {1} = #{0} + {1} + 1
 	else {1} = {1} + 1 end
@@ -40,7 +39,7 @@ class ArrayTools
 	if {2} < {1} then return {} end
 
 	for i = {1}, {2} do table.insert(result, {0}[i]) end", arr, pos, endi);
-		return result;
+		return untyped result;
 	}
 
 	public static function splice<T>(arr:Array<T>, pos:Int, len:Int):Array<T>
@@ -87,7 +86,8 @@ class ArrayTools
 	public static function safeRemove<T>(arr:Array<T>, x:T):Bool
 	{
 		var find = find(arr, x);
-		if (find == null) return false;
+		if (find == null)
+			return false;
 		untyped table.remove(arr, find);
 		return true;
 	}
@@ -117,6 +117,6 @@ class ArrayTools
 	public static function filter<T>(arr:Array<T>, f:T->Bool):Array<T>
 		return [for (v in arr) if (f(v)) v];
 
-	public static function map<T,S>(arr:Array<T>, f:T->S):Array<S>
+	public static function map<T, S>(arr:Array<T>, f:T->S):Array<S>
 		return [for (v in arr) f(v)];
 }

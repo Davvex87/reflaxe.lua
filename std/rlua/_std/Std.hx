@@ -33,7 +33,7 @@ class Std
 			case "userdata":
 				return untyped type(v) == "userdata";
 			case "table":
-				return untyped type(o) == "table" && untyped getmetatable(o) == null;
+				return untyped type(v) == "table" && untyped getmetatable(v) == null;
 			default:
 				if (v != null && untyped (type(v)) == "table" && untyped (type(t)) == "table")
 				{
@@ -48,14 +48,15 @@ class Std
 						return untyped v.__enum__ == t;
 					else
 					{
-						var compatible = true;
-						untyped __lua__('for k, _ in pairs(t) do
+						untyped __lua__('
+local compatible = true
+for k, _ in pairs(t) do
 	if v[k] == nil then
 		compatible = false
 		break
 	end
 end');
-						return compatible;
+						return untyped compatible;
 					}
 				}
 				return false;

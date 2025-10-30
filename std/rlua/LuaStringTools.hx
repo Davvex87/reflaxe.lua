@@ -18,9 +18,12 @@ class LuaStringTools
 
 	public static function split(str:String, delim:String):Array<String>
 	{
-		var result = [];
-		untyped __lua__('for part in string.gmatch({0}, "([^" .. {1} .. "]+)") do table.insert(result, part) end', str, delim);
-		return result;
+		untyped __lua__('
+	local result = {}
+	for part in string.gmatch({0}, "([^" .. {1} .. "]+)") do
+		table.insert(result, part)
+	end', str, delim);
+		return untyped result;
 	}
 
 	public static function codes(s:String):String->Int->StringCodePoint
@@ -62,7 +65,7 @@ class LuaStringTools
 				n = 4;
 			}
 
-			var pos = i;
+			untyped __lua__('local pos = i');
 			i += n;
 			return untyped __lua__("pos, codepoint");
 		}
