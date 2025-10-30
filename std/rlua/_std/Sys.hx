@@ -108,7 +108,7 @@ class Sys
 	/**
 		Suspends execution for the given length of time (in seconds).
 	**/
-	// TODO: Prefer using luvit's yielding functions when available
+	// TODO: Prefer using luvit or another lib for yielding functions when available
 	public static function sleep(seconds:Float):Void
 	{
 		if (_windowsSys)

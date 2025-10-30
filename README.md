@@ -81,6 +81,7 @@ end
 - [Usage](#usage)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
+- [TODO](#todo)
 
 # Progress
 
@@ -187,3 +188,6 @@ If you are having compile-time errors or run-time issues, please take a look at 
 If you're interested in helping the project, **feel free to open a pull request or submit an issue**. Please just make sure that the issue you're reporting has not been reported yet, same thing for pull requests.
 
 Both Reflaxe.lua and [Reflaxe](https://github.com/SomeRanDev/Reflaxe) are community ran projects made for everyone and to suit everyone's needs. There's still a lot to implement and improve, every contribution helps a ton ❤️.
+
+# To-Do
+View [TODO.md](TODO.md).

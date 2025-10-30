@@ -6,7 +6,8 @@ class StringTools
 	public static function urlEncode(s:String):String
 	{
 		s = untyped string.gsub(s, "\\n", "\\r\\n");
-		s = untyped __lua__('string.gsub({0}, "([^%w %-%_%.%~])", {1})', s, function(c) {
+		s = untyped __lua__('string.gsub({0}, "([^%w %-%_%.%~])", {1})', s, function(c)
+		{
 			return untyped string.format("%%%02X", string.byte(c) + '');
 		});
 		s = untyped string.gsub(s, " ", "+");
@@ -16,14 +17,14 @@ class StringTools
 	public static function urlDecode(s:String):String
 	{
 		s = untyped string.gsub(s, "+", " ");
-		s = untyped __lua__('string.gsub({0}, "%%(%x%x)", {1})', s, function(h) {
+		s = untyped __lua__('string.gsub({0}, "%%(%x%x)", {1})', s, function(h)
+		{
 			return untyped string.char(tonumber(h, 16));
 		});
 		s = untyped string.gsub(s, "\\r\\n", "\\n");
 		return s;
 	}
 
-	// TODO: Also maybe check out the haxe.iterators package? plus gotta also do the other String classes like StringBuf
 	public static function htmlEscape(s:String, ?quotes:Bool):String
 	{
 		var buf = new StringBuf();
@@ -136,24 +137,25 @@ class StringTools
 	{
 		var s = "";
 		var hexChars = "0123456789ABCDEF";
-		do {
+		do
+		{
 			s = hexChars.charAt(n & 15) + s;
 			n >>>= 4;
-		} while (n > 0);
+		}
+		while (n > 0);
 		if (digits != null)
 			while (s.length < digits)
 				s = "0" + s;
 		return s;
 	}
-	
+
 	public static inline function fastCodeAt(s:String, index:Int):Int
 		return s.charCodeAt(index);
 
 	public static inline function unsafeCodeAt(s:String, index:Int):Int
 		return s.charCodeAt(index);
 
-	// TODO: Review this
-	public static inline function iterator(s:String):StringIterator
+	public static inline function iterator(s:String):StringIterator // TODO: Review this
 		return new StringIterator(s);
 
 	public static inline function keyValueIterator(s:String):StringKeyValueIterator

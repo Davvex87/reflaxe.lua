@@ -41,7 +41,7 @@ class ConvertBitwiseOperators extends BasePreprocessor
 	{
 		switch (expr.expr)
 		{
-			case TBinop(op, e1, e2): // TODO: Maybe use as TField instead of a TIdent here?
+			case TBinop(op, e1, e2):
 				e1 = processExpr(e1);
 				e2 = processExpr(e2);
 
@@ -54,7 +54,7 @@ class ConvertBitwiseOperators extends BasePreprocessor
 					});
 					if (opFnCall != null)
 					{
-						return {
+						return { // TODO: Maybe use as TField instead of a TIdent here?
 							expr: TBinop(OpAssign, e1, {
 								expr: TCall({
 									expr: TIdent(StringTools.replace(inlineMethod, "{op}", opFnCall)),
@@ -74,7 +74,7 @@ class ConvertBitwiseOperators extends BasePreprocessor
 				var opFnCall = getOpProxy(op);
 				if (opFnCall != null)
 				{
-					return {
+					return { // TODO: Maybe use as TField instead of a TIdent here?
 						expr: TCall({
 							expr: TIdent(StringTools.replace(inlineMethod, "{op}", opFnCall)),
 							pos: expr.pos,
@@ -89,8 +89,8 @@ class ConvertBitwiseOperators extends BasePreprocessor
 			case TUnop(op, postFix, e):
 				e = processExpr(e);
 				if (op.match(OpNegBits))
-					return {
-						expr: TCall({ // TODO: Maybe use as TField instead of a TIdent here?
+					return { // TODO: Maybe use as TField instead of a TIdent here?
+						expr: TCall({
 							expr: TIdent(StringTools.replace(inlineMethod, "{op}", options.opNegBits)),
 							pos: expr.pos,
 							t: expr.t

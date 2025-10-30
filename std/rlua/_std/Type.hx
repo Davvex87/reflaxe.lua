@@ -18,12 +18,12 @@ class Type
 
 		In general, type parameter information cannot be obtained at runtime.
 	**/
+	// FIXME: This generates wrong lua code, help??
 	public static function getClass<T>(o:T):Class<T>
 	{
 		if (o == null)
 			return null;
 
-		// FIXME: This generates wrong lua code, help??
 		if (Std.isOfType(o, Array))
 			return cast Array; // Class<Array> should be Class<getClass.T>
 		else if (Std.isOfType(o, String))
@@ -248,7 +248,7 @@ class Type
 			case "boolean":
 				return TBool;
 			case "string":
-				return TClass(String);
+				return TClass(String); // TODO: Find a workaround for this!
 			case "number":
 				// this should handle all cases : NaN, +/-Inf and Floats outside range
 				if (Math.ceil(v) == v % 2147483648.0)

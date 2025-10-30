@@ -151,8 +151,6 @@ class Compiler extends DirectToStringCompiler
 		final types:Array<BaseType> = [];
 		for (c in generateOutputIterator())
 		{
-			trace(c.baseType.module);
-			trace(c.baseType.name);
 			final mid = c.baseType.module;
 			final filename = output.overrideFileName(mid, c);
 			if (!files.exists(filename))
