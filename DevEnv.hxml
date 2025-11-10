@@ -4,6 +4,7 @@
 -D reflaxe_runtime
 --macro rluacompiler.macros.CustomMacro.build()
 --macro nullSafety("rluacompiler")
+--macro nullSafety("reflaxe")
 -lib reflaxe
 -cp src
 -cp std
