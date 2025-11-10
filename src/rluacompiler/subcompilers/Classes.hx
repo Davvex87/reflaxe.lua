@@ -12,9 +12,6 @@ class Classes extends SubCompiler
 {
 	public function compileClassImpl(classType:ClassType, varFields:Array<ClassVarData>, funcFields:Array<ClassFuncData>):Null<String>
 	{
-		if (varFields.length == 0 && funcFields.length == 0 && (classType.isExtern || classType.meta.has("native")))
-			return null;
-
 		var output = "";
 		var superClassName:Null<String> = classType.superClass?.t?.get()?.name;
 

@@ -21,7 +21,8 @@ class TypeExtractor
 					{
 						// case FInstance(c, params, cf):
 						case FStatic(c, cf):
-							usedTypes.push(c.get());
+							var cls = c.get();
+							if (!cls.isExtern && !cls.meta.has("native")) usedTypes.push(cls);
 						// case FAnon(cf):
 						// case FDynamic(s):
 						// case FClosure(c, cf):

@@ -8,7 +8,8 @@ using StringTools;
 
 class Modules extends SubCompiler
 {
-	public function compileImports(curMod:String, usedTypes:Map<String, Array<BaseType>>, files:Map<String, Array<StringOrBytes>>):String
+	public function compileImports(curMod:String, usedTypes:Map<String, Array<BaseType>>, files:Map<String, Array<StringOrBytes>>,
+			typesPerModule:Map<String, Array<BaseType>>):String
 	{
 		var output = "";
 
@@ -18,7 +19,10 @@ class Modules extends SubCompiler
 				continue;
 			if (!files.exists(m))
 				continue;
-			output += 'local ${tar.map(t -> t.name).join(", ")} = unpack(require("${m}"))\n';
+			var ts = typesPerModule.get(m);
+			if (ts == null || ts.length == 0)
+				continue;
+			output += 'local ${ts.map(t -> t.name).join(", ")} = unpack(require("${m}"))\n';
 		}
 
 		return output;
