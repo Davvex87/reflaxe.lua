@@ -1,5 +1,13 @@
 # To-Do
 
+- Custom require methods
+- Compiler plugins support (to easily make language subsets)
+- More compiler flags
+- Implement static initialization
+- Use a Lua AST instead of the DirectToStringCompiler
+
+# Fixes
+
 ``src/rluacompiler/preprocessors/implementations/ConvertBitwiseOperators.hx:57``
 ``src/rluacompiler/preprocessors/implementations/ConvertBitwiseOperators.hx:77``
 ``src/rluacompiler/preprocessors/implementations/ConvertBitwiseOperators.hx:92``
@@ -43,6 +51,8 @@
 \- Implement the lua-safe compiler def stuff here.
 
 <br>
+
+
 
 ## Note
 There may be some more notes and TODOs or FIXMEs around the source code that are not mentioned here. Feel free to pick up any of these and file a pull request with a solution!

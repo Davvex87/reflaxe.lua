@@ -1,7 +1,7 @@
 package rluacompiler;
 
-import rluacompiler.utils.ModuleUtils;
 #if (macro || rlua_runtime)
+import rluacompiler.utils.ModuleUtils;
 import rluacompiler.subcompilers.*;
 import haxe.macro.Type;
 import reflaxe.DirectToStringCompiler;
@@ -167,19 +167,18 @@ class Compiler extends DirectToStringCompiler
 
 		for (moduleId => outputList in files)
 		{
-			var head:Array<StringOrBytes> = [];
+			final head:Array<StringOrBytes> = [];
 
-			var decls = typesPerModule.get(moduleId) ?? [];
+			final decls = typesPerModule.get(moduleId) ?? [];
 			head.push("local " + decls.map(t -> t.name).join(", ") + " = " + decls.map(t -> "{}").join(", ") + ";");
-			head.push("local _static_init;");
-			head.push('package.loaded["${moduleId}"] = {_static_init, ${decls.map(t -> t.name).join(", ")}};');
+			head.push('package.loaded["${moduleId}"] = {${decls.map(t -> t.name).join(", ")}};');
 
-			var t = usedTypesPerModule.get(moduleId) ?? new Map<String, Array<BaseType>>();
+			final t = usedTypesPerModule.get(moduleId) ?? new Map<String, Array<BaseType>>();
 			head.push(modulesSubCompiler.compileImports(moduleId, t, files, typesPerModule));
 
-			var finalOutputList = head.concat(outputList);
+			final finalOutputList = head.concat(outputList);
 
-			finalOutputList.push('\nreturn {_static_init, ${decls.map(t -> t.name).join(", ")}}');
+			finalOutputList.push('\nreturn {${decls.map(t -> t.name).join(", ")}}');
 
 			output.saveFile(output.getFileName(moduleId.replace(".", "/")), OutputManager.joinStringOrBytes(finalOutputList));
 		}
