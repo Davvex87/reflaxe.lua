@@ -26,155 +26,160 @@ import haxe.extern.Rest;
 import haxe.Constraints.Function;
 import haxe.extern.Rest;
 
-/**
-	Throws an error if the provided value resolves to false or nil.
-**/
-@:native("assert")
-extern function assert<T>(v:T, ?message:String):T;
+@:native("")
+extern class Lua
+{
+	/**
+		Throws an error if the provided value resolves to false or nil.
+	**/
+	@:native("assert")
+	static function assert<T>(v:T, ?message:String):T;
 
-/**
-	Halts thread execution and throws an error.
-**/
-@:native("error")
-extern function error(message:String, ?level:Int):Void;
+	/**
+		Halts thread execution and throws an error.
+	**/
+	@:native("error")
+	static function error(message:String, ?level:Int):Void;
 
-/**
-	Returns the total memory heap size in kilobytes.
-**/
-@:native("gcinfo")
-extern function gcinfo():Int;
+	/**
+		Returns the total memory heap size in kilobytes.
+	**/
+	@:native("gcinfo")
+	static function gcinfo():Int;
 
-/**
-	Returns the metatable of the given table.
-**/
-@:native("getmetatable")
-extern function getmetatable(tbl:Map<Dynamic, Dynamic>):Map<Dynamic, Dynamic>;
+	/**
+		Returns the metatable of the given table.
+	**/
+	@:native("getmetatable")
+	static function getmetatable(tbl:Map<Dynamic, Dynamic>):Map<Dynamic, Dynamic>;
 
-/**
-	Returns the provided code as a function that can be executed.
-**/
-@:native("loadstring")
-extern function loadstring(contents:String, chunkname:String):Dynamic;
+	/**
+		Returns the provided code as a function that can be executed.
+	**/
+	@:native("loadstring")
+	static function loadstring(contents:String, chunkname:String):Dynamic;
 
-/**
-	Creates a blank userdata, with the option for it to have a metatable.
-**/
-@:native("newproxy")
-extern function newproxy(addMetatable:Bool):UserData;
+	/**
+		Creates a blank userdata, with the option for it to have a metatable.
+	**/
+	@:native("newproxy")
+	static function newproxy(addMetatable:Bool):UserData;
 
-/**
-	An iterator function for use in for loops.
-**/
-@:native("next")
-extern function next<K, V>(k:Map<K, V>, ?i:K):NextResult<K, V>;
+	/**
+		An iterator function for use in for loops.
+	**/
+	@:native("next")
+	static function next<K, V>(k:Map<K, V>, ?i:K):NextResult<K, V>;
 
-/**
-	Returns an iterator function and the provided table for use in a for loop.
-**/
-@:native("pairs")
-extern function pairs<K, V>(t:Map<K, V>):PairsResult<K, V>;
+	/**
+		Returns an iterator function and the provided table for use in a for loop.
+	**/
+	@:native("pairs")
+	static function pairs<K, V>(t:Map<K, V>):PairsResult<K, V>;
 
-/**
-	Returns an iterator function and the provided table for use in a for loop.
-**/
-@:native("ipairs")
-extern function ipairs<K, V>(t:Map<K, V>):IPairsResult<K, V>;
+	/**
+		Returns an iterator function and the provided table for use in a for loop.
+	**/
+	@:native("ipairs")
+	static function ipairs<K, V>(t:Map<K, V>):IPairsResult<K, V>;
 
-/**
-	Runs the provided function and catches any error it throws, returning the function's success and its results.
-**/
-@:native("pcall")
-extern function pcall(f:Function, rest:Rest<Dynamic>):PCallResult;
+	/**
+		Runs the provided function and catches any error it throws, returning the function's success and its results.
+	**/
+	@:native("pcall")
+	static function pcall(f:Function, rest:Rest<Dynamic>):PCallResult;
 
-/**
-	Prints all provided values to the output.
-**/
-@:native("print")
-extern function print(v:haxe.extern.Rest<Dynamic>):Void;
+	/**
+		Prints all provided values to the output.
+	**/
+	@:native("print")
+	static function print(v:Dynamic):Void;
 
-/**
-	Returns whether v1 is equal to v2, bypassing their metamethods.
-**/
-@:native("rawequal")
-extern function rawequal(v1:Dynamic, v2:Dynamic):Bool;
+	/**
+		Returns whether v1 is equal to v2, bypassing their metamethods.
+	**/
+	@:native("rawequal")
+	static function rawequal(v1:Dynamic, v2:Dynamic):Bool;
 
-/**
-	Gets the real value of table[index], bypassing any metamethods.
-**/
-@:native("rawget")
-extern function rawget<K, V>(t:Map<K, V>, k:K):V;
+	/**
+		Gets the real value of table[index], bypassing any metamethods.
+	**/
+	@:native("rawget")
+	static function rawget<K, V>(t:Map<K, V>, k:K):V;
 
-/**
-	Returns the length of the string or table, bypassing any metamethods.
-**/
-@:native("rawlen")
-extern function rawlen(t:Map<Dynamic, Dynamic>):Int;
+	/**
+		Returns the length of the string or table, bypassing any metamethods.
+	**/
+	@:native("rawlen")
+	static function rawlen(t:Map<Dynamic, Dynamic>):Int;
 
-/**
-	Sets the real value of table[index], bypassing any metamethods.
-**/
-@:native("rawset")
-extern function rawset<K, V>(t:Map<K, V>, k:K, v:V):Void;
+	/**
+		Sets the real value of table[index], bypassing any metamethods.
+	**/
+	@:native("rawset")
+	static function rawset<K, V>(t:Map<K, V>, k:K, v:V):Void;
 
-/**
-	Returns the value that was returned by the given ModuleScript, running it if it has not been run yet.
-**/
-@:native("require")
-extern function require(module:String):Dynamic;
+	/**
+		Returns the value that was returned by the given ModuleScript, running it if it has not been run yet.
+	**/
+	@:native("require")
+	static function require(module:String):Dynamic;
 
-/**
-	Returns all arguments after the given index.
-**/
-@:native("select")
-extern function select(n:Dynamic, rest:Rest<Dynamic>):Dynamic;
+	/**
+		Returns all arguments after the given index.
+	**/
+	@:native("select")
+	static function select(n:Dynamic, rest:Rest<Dynamic>):Dynamic;
 
-/**
-	Sets the given table's metatable.
-**/
-@:native("setmetatable")
-extern function setmetatable(tbl:Map<Dynamic, Dynamic>, mtbl:Map<Dynamic, Dynamic>):Map<Dynamic, Dynamic>;
+	/**
+		Sets the given table's metatable.
+	**/
+	@:native("setmetatable")
+	static function setmetatable(tbl:Dynamic, mtbl:Dynamic):Dynamic;
 
-/**
-	Returns the provided value converted to a number, or nil if impossible.
-**/
-@:native("tonumber")
-extern function tonumber(str:String, ?base:Int):Int;
+	/**
+		Returns the provided value converted to a number, or nil if impossible.
+	**/
+	@:native("tonumber")
+	static function tonumber(str:String, ?base:Int):Int;
 
-/**
-	Returns the provided value converted to a string, or nil if impossible.
-**/
-@:native("tostring")
-extern function tostring(v:Dynamic):String;
+	/**
+		Returns the provided value converted to a string, or nil if impossible.
+	**/
+	@:native("tostring")
+	static function tostring(v:Dynamic):String;
 
-/**
-	Returns the basic type of the provided object.
-**/
-@:native("type")
-extern function type(v:Dynamic):String;
+	/**
+		Returns the basic type of the provided object.
+	**/
+	@:native("type")
+	static function type(v:Dynamic):String;
 
-/**
-	Returns all elements from the given list as a tuple.
-**/
-@:native("unpack")
-extern function unpack(list:Map<Dynamic, Dynamic>, i:Int, j:Int):Dynamic;
+	/**
+		Returns all elements from the given list as a tuple.
+	**/
+	@:native("unpack")
+	// @:nativeFunctionCode("unpack({arg0}, {arg1}, {arg2})")
+	static function unpack(list:Dynamic, ?i:Int, ?j:Int):Dynamic;
 
-/**
-	Similar to pcall() except it uses a custom error handler.
-**/
-@:native("xpcall")
-extern function xpcall(f:Function, msgh:Function, rest:Rest<Dynamic>):PCallResult;
+	/**
+		Similar to pcall() except it uses a custom error handler.
+	**/
+	@:native("xpcall")
+	static function xpcall(f:Function, msgh:Function, rest:Rest<Dynamic>):PCallResult;
 
-/**
-	A table that is shared between all scripts of the same context level.
-**/
-@:native("_G")
-extern var _G:Map<Dynamic, Dynamic>;
+	/**
+		A table that is shared between all scripts of the same context level.
+	**/
+	@:native("_G")
+	static var _G:Dynamic;
 
-/**
-	A global variable that holds a string containing the current interpreter version.
-**/
-@:native("_VERSION")
-extern var _VERSION:String;
+	/**
+		A global variable that holds a string containing the current interpreter version.
+	**/
+	@:native("_VERSION")
+	static var _VERSION:String;
+}
 
 @:multiReturn
 extern class IPairsResult<K, V>

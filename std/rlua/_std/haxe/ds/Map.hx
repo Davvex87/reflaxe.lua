@@ -28,7 +28,6 @@ import haxe.ds.ObjectMap;
 import haxe.ds.EnumValueMap;
 import haxe.Constraints.IMap;
 import rlua.MapTools;
-import rlua.Lua;
 
 /**
 	Map allows key to value mapping for arbitrary value types, and many key

@@ -36,19 +36,19 @@ class TestClass implements TestInterface
 	{
 		trace("Create Code class! " + arg1);
 		field = arg2 ?? Two;
-		untyped print(rest);
-		untyped print(rest.toArray());
-		untyped print(rest.length);
+		print(rest);
+		print(rest.toArray());
+		print(rest.length);
 
 		var arr = [1, 2, 5];
-		untyped print(arr.join(", ")); // "1, 2, 5"
-		untyped print(arr.length); // 3
-		untyped print(arr[2]); // 5
+		print(arr.join(", ")); // "1, 2, 5"
+		print(arr.length); // 3
+		print(arr[2]); // 5
 		arr[3] = Math.round(Math.PI);
 
 		for (num in arr)
 		{
-			untyped print(num);
+			print(num);
 		}
 
 		var a = new Array();
@@ -61,24 +61,24 @@ class TestClass implements TestInterface
 		otherArray.push(8);
 		otherArray.pop();
 
-		untyped print(otherArray.concat(arr));
+		print(otherArray.concat(arr));
 
 		var e:Dynamic = cast "TestStr";
-		untyped print(e & 20); // "print(e + 20)"
-		untyped print(cast(e, String) + 20); // "print(e .. 20)"
+		print(e & 20); // "print(e + 20)"
+		print(cast(e, String) + 20); // "print(e .. 20)"
 
 		/*
 			for (num in arr)
-				untyped print(num * 2);
+				print(num * 2);
 		 */
 
 		var myMap:Map<String, Float> = new Map();
 		myMap.set("key", 69.420);
-		untyped print(myMap.get("key"));
+		print(myMap.get("key"));
 		myMap.set("name", 70.420);
-		untyped print(myMap["name"]);
+		print(myMap["name"]);
 		myMap.remove("key");
-		untyped print(myMap.get("key"));
+		print(myMap.get("key"));
 
 		var n = 10;
 		while (n > 2)
@@ -118,26 +118,26 @@ class TestClass implements TestInterface
 		}
 
 		{
-			untyped print(1);
+			print(1);
 			{
-				untyped print(2);
+				print(2);
 				{
-					untyped print(3);
+					print(3);
 				}
 			}
 		}
 
 		var absNum:MyAbstractNumber = 124;
-		untyped print(absNum.isEven());
+		print(absNum.isEven());
 		var gcdResult = absNum.gcd(56);
-		untyped print(gcdResult);
+		print(gcdResult);
 
 		var num:Int = absNum;
-		untyped print(num);
+		print(num);
 
 		var newAbsNumber:MyAbstractNumber = MyAbstractNumber.randomBetween(10, 50);
 		var res:Int = newAbsNumber.sumDigits();
-		untyped print(newAbsNumber + res);
+		print(newAbsNumber + res);
 
 		var ent:CoolEntity = new CoolEntity(3);
 		ent.special();
@@ -146,7 +146,7 @@ class TestClass implements TestInterface
 
 	public function increment(i:Int)
 	{
-		untyped print(i);
+		print(i);
 		switch (field)
 		{
 			case One:
@@ -155,7 +155,7 @@ class TestClass implements TestInterface
 				field = Three;
 			case _:
 		}
-		untyped print(field);
+		print(field);
 		untyped __lua__("local testStr = 'aaaa'\nprint(testStr, {0})", field);
 	}
 
@@ -185,14 +185,14 @@ class TestClass implements TestInterface
 
 function main()
 {
-	untyped print("Hello world!");
+	print("Hello world!");
 
 	final c = new TestClass("Yay!");
 	for (i in 0...TestClass.getNumber())
 	{
 		c.increment(i);
 		if (i == 2)
-			untyped print("Two!");
+			print("Two!");
 	}
 	trace(c.increment);
 
@@ -203,12 +203,12 @@ function main()
 	}
 
 	myStruct.three = "4";
-	untyped print(myStruct);
+	print(myStruct);
 
 	var some = new SomeClass(1, "Hi");
-	untyped print(some.did);
+	print(some.did);
 	some.one(5.5);
-	untyped print(some.did);
+	print(some.did);
 	some.three();
 
 	var myEnumVal:AdvancedEnum = YetAnotherConstr(5.5);
@@ -224,18 +224,18 @@ function main()
 		case YetAnotherConstr(bananas, yes):
 			'YetAnotherConstr($bananas, ?$yes)';
 		default:
-			untyped print('Item $myEnumVal not recognized...');
+			print('Item $myEnumVal not recognized...');
 			'???';
 	}
-	untyped print(myValue);
+	print(myValue);
 
 	var res = Os.remove("important");
 	if (res.result == null)
-		untyped print(res.error);
+		print(res.error);
 
 	function doSum(r:Dynamic)
 	{
-		untyped print(r);
+		print(r);
 	}
 	doSum(Os.remove("folder2"));
 
@@ -247,9 +247,11 @@ function main()
 
 	var taskCoro = Coroutine.create(task);
 	var resumeResult = Coroutine.resume(taskCoro, 1, "Yay");
-	untyped print(resumeResult.success, resumeResult.result);
+	print(resumeResult.success);
+	print(resumeResult.result);
 	resumeResult = Coroutine.resume(taskCoro);
-	untyped print(resumeResult.success, resumeResult.result);
+	print(resumeResult.success);
+	print(resumeResult.result);
 }
 
 class SomeClass extends OtherClass
@@ -264,7 +266,7 @@ class SomeClass extends OtherClass
 
 	override public function one(a:Float)
 	{
-		untyped print("BEFORE");
+		print("BEFORE");
 		super.one(a * myNumber);
 		two(true);
 	}
@@ -292,25 +294,26 @@ class OtherClass
 
 	public static function test()
 	{
-		untyped print(e);
+		print(e);
 	}
 
 	public function new(a1:Int, a2:String)
 	{
-		untyped print(a1);
-		untyped print(a2);
+		print(a1);
+		print(a2);
 	}
 
 	public function one(a:Float)
 	{
-		untyped print("Hello!", a);
+		print("Hello!");
+		print(a);
 	}
 
 	public function two(b:Bool)
 	{
 		static var counter = 0;
 		did = b;
-		untyped print(didWeDoIt);
+		print(didWeDoIt);
 		counter++;
 		e += counter;
 	}

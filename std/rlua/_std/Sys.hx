@@ -3,7 +3,6 @@
 	Look in the `sys` package for more system APIs.
 **/
 
-import rlua.Lua;
 import sys.io.FileOutput;
 import sys.io.FileInput;
 import haxe.io.Path;
