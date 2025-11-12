@@ -1,6 +1,5 @@
 package rluacompiler.utils;
 
-import rlua.Lua.print;
 #if (macro || rlua_runtime)
 import haxe.macro.TypedExprTools;
 import haxe.macro.Type;
