@@ -18,8 +18,7 @@ class TypeExtractor
 				case TField(e, fa):
 					switch (fa)
 					{
-						// case FInstance(c, params, cf):
-						case FStatic(c, cf):
+						case FStatic(c, _) | FInstance(c, _, _):
 							var cls = c.get();
 							if (!cls.isExtern && !cls.meta.has("native")) usedTypes.push(cls);
 						// case FAnon(cf):
@@ -42,6 +41,7 @@ class TypeExtractor
 					}
 				case TNew(c, params, el):
 					usedTypes.push(c.get());
+					TypedExprTools.iter(e, iter);
 				default:
 					TypedExprTools.iter(e, iter);
 			}
