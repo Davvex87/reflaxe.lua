@@ -94,6 +94,7 @@ Generation Problems:
 - Unary operator overhead through unnecessary function calls
 - OpAssignOp (+=, -=, &=, etc..) overhead through unnecessary function calls
 - Blind objects (the compiler makes often heavy assumptions about objects)
+- Null checks often create variables and unecessary scope blocks since the `or` lua op is the same as `??`
 
 ### Lua API Coverage
 How much of Lua's API is covered by Reflaxe.lua.
@@ -103,6 +104,7 @@ How much of Lua's API is covered by Reflaxe.lua.
 Missing:
 - table (native)
 - string (native)
+- math (native)
 
 ### Haxe Std Library Coverage
 How complete are the Std Library's Lua bindings.
@@ -121,10 +123,7 @@ How many of Haxe's primitive and support types are implemented.
 ### Haxe Language Features Support
 How many of Haxe's language features are correctly compiled to their Lua alternatives.
 
-![98](https://progress-bar.xyz/98/?width=200)
-
-Missing:
-- There are some issues with the @:arrayAccess metadata
+![100](https://progress-bar.xyz/100/?width=200)
 
 # Setup
 
