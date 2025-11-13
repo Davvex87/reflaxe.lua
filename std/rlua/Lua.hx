@@ -22,6 +22,7 @@
 
 package rlua;
 
+import haxe.Constraints.IMap;
 import haxe.extern.Rest;
 import haxe.Constraints.Function;
 import haxe.extern.Rest;
@@ -69,19 +70,19 @@ extern class Lua
 		An iterator function for use in for loops.
 	**/
 	@:native("next")
-	static function next<K, V>(k:Map<K, V>, ?i:K):NextResult<K, V>;
+	static function next<K, V>(k:IMap<K, V>, ?i:K):NextResult<K, V>;
 
 	/**
 		Returns an iterator function and the provided table for use in a for loop.
 	**/
 	@:native("pairs")
-	static function pairs<K, V>(t:Map<K, V>):PairsResult<K, V>;
+	static function pairs<K, V>(t:IMap<K, V>):PairsResult<K, V>;
 
 	/**
 		Returns an iterator function and the provided table for use in a for loop.
 	**/
 	@:native("ipairs")
-	static function ipairs<K, V>(t:Map<K, V>):IPairsResult<K, V>;
+	static function ipairs<K, V>(t:IMap<K, V>):IPairsResult<K, V>;
 
 	/**
 		Runs the provided function and catches any error it throws, returning the function's success and its results.
@@ -160,7 +161,7 @@ extern class Lua
 	**/
 	@:native("unpack")
 	// @:nativeFunctionCode("unpack({arg0}, {arg1}, {arg2})")
-	static function unpack(list:Dynamic, ?i:Int, ?j:Int):Dynamic;
+	static function unpack(list:Array<Dynamic>, ?i:Int, ?j:Int):Dynamic;
 
 	/**
 		Similar to pcall() except it uses a custom error handler.
@@ -172,7 +173,7 @@ extern class Lua
 		A table that is shared between all scripts of the same context level.
 	**/
 	@:native("_G")
-	static var _G:Dynamic;
+	static var _G:IMap<Dynamic, Dynamic>;
 
 	/**
 		A global variable that holds a string containing the current interpreter version.

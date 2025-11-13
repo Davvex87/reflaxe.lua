@@ -6,7 +6,7 @@ import haxe.iterators.ArrayIterator;
 import haxe.iterators.ArrayKeyValueIterator;
 
 @:luaIndexArray
-extern class Array<T>
+extern class Array<T> implements ArrayAccess<T>
 {
 	var length(get, never):Int;
 

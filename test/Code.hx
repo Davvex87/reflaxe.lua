@@ -321,6 +321,7 @@ class OtherClass
 	public function three()
 	{
 		trace("I WAS CALLED!");
+		print(_G);
 	}
 
 	public function get_didWeDoIt():Bool

@@ -45,7 +45,8 @@ import rlua.MapTools;
 
 	@see https://haxe.org/manual/std-Map.html
 **/
-extern class Map<K, V> implements IMap<K, V>
+@:transitive
+extern abstract Map<K, V>(IMap<K, V>)
 {
 	/**
 		Creates a new Map.
@@ -61,8 +62,10 @@ extern class Map<K, V> implements IMap<K, V>
 
 		(Cpp) Map does not use weak keys on `ObjectMap` by default.
 	**/
-	@:nativeFunctionCode("{}")
-	public function new();
+	public inline function new()
+	{
+		untyped this = {};
+	}
 
 	/**
 		Maps `key` to `value`.
@@ -159,10 +162,10 @@ extern class Map<K, V> implements IMap<K, V>
 	**/
 	public inline function copy():Map<K, V>
 	{
-		var copied = new Map<K, V>();
+		var copied = new Map<Dynamic, Dynamic>();
 		for (key in this.keys())
 			copied.set(key, this.get(key));
-		return copied;
+		return cast copied;
 	}
 
 	/**
@@ -183,40 +186,5 @@ extern class Map<K, V> implements IMap<K, V>
 	{
 		this.set(k, v);
 		return v;
-	}
-
-	@:to static inline function toStringMap<K:String, V>(t:IMap<K, V>):StringMap<V>
-	{
-		return new StringMap<V>();
-	}
-
-	@:to static inline function toIntMap<K:Int, V>(t:IMap<K, V>):IntMap<V>
-	{
-		return new IntMap<V>();
-	}
-
-	@:to static inline function toEnumValueMapMap<K:EnumValue, V>(t:IMap<K, V>):EnumValueMap<K, V>
-	{
-		return new EnumValueMap<K, V>();
-	}
-
-	@:to static inline function toObjectMap<K:{}, V>(t:IMap<K, V>):ObjectMap<K, V>
-	{
-		return new ObjectMap<K, V>();
-	}
-
-	@:from static inline function fromStringMap<V>(map:StringMap<V>):Map<String, V>
-	{
-		return cast map;
-	}
-
-	@:from static inline function fromIntMap<V>(map:IntMap<V>):Map<Int, V>
-	{
-		return cast map;
-	}
-
-	@:from static inline function fromObjectMap<K:{}, V>(map:ObjectMap<K, V>):Map<K, V>
-	{
-		return cast map;
 	}
 }
