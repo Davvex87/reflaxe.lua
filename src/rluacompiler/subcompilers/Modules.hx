@@ -22,7 +22,11 @@ class Modules extends SubCompiler
 			var ts = typesPerModule.get(m);
 			if (ts == null || ts.length == 0)
 				continue;
-			output += 'local ${ts.map(t -> t.name).join(", ")} = unpack(require("${m}"))\n';
+			output += 'local ${ts.map(t -> {
+				if (t.meta.has(":customImport"))
+					return "_";
+				return t.name;
+			}).join(", ")} = unpack(require("${m}"))\n';
 		}
 
 		return output;

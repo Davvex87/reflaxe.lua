@@ -32,30 +32,40 @@ class Compiler extends DirectToStringCompiler
 
 	public var typesPerModule:Map<String, Array<BaseType>> = new Map<String, Array<BaseType>>();
 	public var usedTypesPerModule:Map<String, Map<String, Array<BaseType>>> = new Map<String, Map<String, Array<BaseType>>>();
+	public var customImports:Map<String, Array<BaseType>> = new Map<String, Array<BaseType>>();
 
 	function addTypesToMod(baseModule:String, types:Array<BaseType>)
 	{
 		var st = usedTypesPerModule.get(baseModule);
+		var ui:Array<BaseType> = customImports.get(baseModule) ?? [];
 		for (ut in types)
 		{
-			var found = false;
-			for (m => tar in st)
+			if (ut.meta.has(":customImport"))
 			{
-				for (t in tar)
-					if (t.equals(ut))
-					{
-						found = true;
-						break;
-					}
+				if (!ui.contains(ut))
+					ui.push(ut);
 			}
-
-			if (!found)
+			else
 			{
-				if (!st.exists(ut.module))
+				var found = false;
+				for (m => tar in st)
 				{
-					st.set(ut.module, []);
+					for (t in tar)
+						if (t.equals(ut))
+						{
+							found = true;
+							break;
+						}
 				}
-				st.get(ut.module).push(ut);
+
+				if (!found)
+				{
+					if (!st.exists(ut.module))
+					{
+						st.set(ut.module, []);
+					}
+					st.get(ut.module).push(ut);
+				}
 			}
 		}
 	}
@@ -94,6 +104,8 @@ class Compiler extends DirectToStringCompiler
 
 		if (!usedTypesPerModule.exists(classType.module))
 			usedTypesPerModule.set(classType.module, new Map<String, Array<BaseType>>());
+		if (!customImports.exists(classType.module))
+			customImports.set(classType.module, []);
 
 		if (classType.superClass != null)
 			addTypesToMod(classType.module, [classType.superClass.t.get()]);
@@ -175,6 +187,25 @@ class Compiler extends DirectToStringCompiler
 
 			final t = usedTypesPerModule.get(moduleId) ?? new Map<String, Array<BaseType>>();
 			head.push(modulesSubCompiler.compileImports(moduleId, t, files, typesPerModule));
+
+			for (_ => cls in customImports.get(moduleId) ?? [])
+			{
+				final e = cls.meta.extract(":customImport")[0].params[0].expr;
+				var imp = switch (e)
+				{
+					case EConst(c):
+						switch (c)
+						{
+							case CString(s):
+								s;
+							default:
+								"_";
+						}
+					default:
+						cls.name;
+				};
+				head.push('local ${cls.name} = ${imp}\n');
+			}
 
 			final finalOutputList = head.concat(outputList);
 

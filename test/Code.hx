@@ -1,5 +1,6 @@
 package;
 
+import pkg.CustomExternClass;
 import pkg.MyAbstractNumber;
 import pkg.entities.CoolEntity;
 import pkg.entities.AbstractEntity;
@@ -56,6 +57,11 @@ class TestClass implements TestInterface
 			a.push(i);
 
 		trace(a);
+
+		print(CustomExternClass.staticMethod("Hello from static method!"));
+		print(Type.typeof(Test));
+		var customCls = new CustomExternClass();
+		customCls.instanceMethod(42);
 
 		var otherArray:Array<Int> = new Array<Int>();
 		otherArray.push(8);

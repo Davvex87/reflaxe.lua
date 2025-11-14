@@ -56,15 +56,6 @@ class Classes extends SubCompiler
 			if (fields.length > 0)
 				output += '${classType.name}.__prototype__ = {${fields.join(", ")}}\n';
 
-			for (f in varFields)
-			{
-				if (f.getter != null && f.setter != null)
-				{
-					trace(f.getter.name);
-					trace(f.setter.name);
-				}
-			}
-
 			var properties = varFields.map((i) -> i.getter != null ? i.getter.name : null)
 				.concat(varFields.map((i) -> i.setter != null ? i.setter.name : null))
 				.filter((s) -> s != null);
