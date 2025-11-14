@@ -37,6 +37,8 @@ class Fields extends SubCompiler
 	{
 		if (func.field.isAbstract)
 			return null;
+		if (func.field.meta.has(":topLevelCode"))
+			return null;
 
 		var output = "";
 		var argsStr = "";

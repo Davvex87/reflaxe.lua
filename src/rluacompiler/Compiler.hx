@@ -33,6 +33,7 @@ class Compiler extends DirectToStringCompiler
 	public var typesPerModule:Map<String, Array<BaseType>> = new Map<String, Array<BaseType>>();
 	public var usedTypesPerModule:Map<String, Map<String, Array<BaseType>>> = new Map<String, Map<String, Array<BaseType>>>();
 	public var customImports:Map<String, Array<BaseType>> = new Map<String, Array<BaseType>>();
+	public var topLevelCode:Map<String, Array<String>> = new Map<String, Array<String>>();
 
 	function addTypesToMod(baseModule:String, types:Array<BaseType>)
 	{
@@ -94,8 +95,31 @@ class Compiler extends DirectToStringCompiler
 			typesPerModule.set(classType.module, []);
 		typesPerModule.get(classType.module).push(classType);
 
-		if (!classType.meta.has("keep") && ModuleUtils.isFullExternImpl(classType, varFields, funcFields))
-			return null;
+		// if (!classType.meta.has("keep") && ModuleUtils.isFullExternImpl(classType, varFields, funcFields))
+		//	return null;
+
+		if (!topLevelCode.exists(classType.module))
+			topLevelCode.set(classType.module, []);
+
+		for (funcf in funcFields)
+		{
+			if (funcf.field.meta.has(":topLevelCall"))
+			{
+				if (!funcf.isStatic)
+					throw "Top-level calls can only be used on static functions.";
+				var e = funcf.expr;
+				if (e != null)
+					topLevelCode.get(classType.module).push('${classType.name}.${funcf.field.name}()');
+			}
+			else if (funcf.field.meta.has(":topLevelCode"))
+			{
+				if (!funcf.isStatic)
+					throw "Top-level code can only be defined by static functions.";
+				var e = funcf.expr;
+				if (e != null)
+					topLevelCode.get(classType.module).push(expressionsSubCompiler.compileExpressionImpl(e, 0, null));
+			}
+		}
 
 		var data = classesSubCompiler.compileClassImpl(classType, varFields, funcFields);
 
@@ -209,6 +233,10 @@ class Compiler extends DirectToStringCompiler
 
 			final finalOutputList = head.concat(outputList);
 
+			for (code in topLevelCode.get(moduleId) ?? [])
+			{
+				finalOutputList.push(code + "\n");
+			}
 			finalOutputList.push('\nreturn {${decls.map(t -> t.name).join(", ")}}');
 
 			output.saveFile(output.getFileName(moduleId.replace(".", "/")), OutputManager.joinStringOrBytes(finalOutputList));
