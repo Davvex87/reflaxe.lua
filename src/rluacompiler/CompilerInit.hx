@@ -24,7 +24,7 @@ class CompilerInit
 			RemoveUnnecessaryBlocks,
 			RemoveReassignedVariableDeclarations,
 			RemoveLocalVariableAliases,
-			RemoveTemporaryVariables(AllOneUseVariables),
+			// RemoveTemporaryVariables(AllOneUseVariables),
 			RemoveTemporaryVariables(AllTempVariables),
 			MarkUnusedVariables,
 			Custom(new ConvertBitwiseOperators(LuaVUtils.bitFuncPattern, LuaVUtils.bitFuncField)),
