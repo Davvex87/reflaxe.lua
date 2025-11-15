@@ -11,6 +11,7 @@
 
 # Set output folder for Lua
 -D lua-output=out
+-D use_import_wrapper
 
 # Main function
 -main Code

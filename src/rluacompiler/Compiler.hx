@@ -12,6 +12,8 @@ import rluacompiler.utils.TypeExtractor;
 import haxe.macro.Context;
 import reflaxe.output.OutputManager;
 import reflaxe.output.StringOrBytes;
+import rluacompiler.resources.HxPkgWrapper.hxPkgWrapperContent;
+import rluacompiler.resources.HxPkgWrapper.hxPkgWrapperRequire;
 
 using reflaxe.helpers.BaseTypeHelper;
 using StringTools;
@@ -34,6 +36,8 @@ class Compiler extends DirectToStringCompiler
 	public var usedTypesPerModule:Map<String, Map<String, Array<BaseType>>> = new Map<String, Map<String, Array<BaseType>>>();
 	public var customImports:Map<String, Array<BaseType>> = new Map<String, Array<BaseType>>();
 	public var topLevelCode:Map<String, Array<String>> = new Map<String, Array<String>>();
+
+	public var useImportWrapper:Bool = Context.defined("use_import_wrapper");
 
 	function addTypesToMod(baseModule:String, types:Array<BaseType>)
 	{
@@ -207,10 +211,13 @@ class Compiler extends DirectToStringCompiler
 
 			final decls = typesPerModule.get(moduleId) ?? [];
 			head.push("local " + decls.map(t -> t.name).join(", ") + " = " + decls.map(t -> "{}").join(", ") + ";");
-			head.push('package.loaded["${moduleId}"] = {${decls.map(t -> t.name).join(", ")}};');
+			if (useImportWrapper)
+				head.push(hxPkgWrapperRequire);
+			else
+				head.push('package.loaded["${moduleId}"] = {${decls.map(t -> t.name).join(", ")}};');
 
 			final t = usedTypesPerModule.get(moduleId) ?? new Map<String, Array<BaseType>>();
-			head.push(modulesSubCompiler.compileImports(moduleId, t, files, typesPerModule));
+			head.push(modulesSubCompiler.compileImports(moduleId, t, files, typesPerModule, useImportWrapper));
 
 			for (_ => cls in customImports.get(moduleId) ?? [])
 			{
@@ -241,6 +248,9 @@ class Compiler extends DirectToStringCompiler
 
 			output.saveFile(output.getFileName(moduleId.replace(".", "/")), OutputManager.joinStringOrBytes(finalOutputList));
 		}
+
+		if (useImportWrapper)
+			output.saveFile("hxPkgWrapper.lua", hxPkgWrapperContent);
 	}
 }
 #end

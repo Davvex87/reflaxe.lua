@@ -9,9 +9,10 @@ using StringTools;
 class Modules extends SubCompiler
 {
 	public function compileImports(curMod:String, usedTypes:Map<String, Array<BaseType>>, files:Map<String, Array<StringOrBytes>>,
-			typesPerModule:Map<String, Array<BaseType>>):String
+			typesPerModule:Map<String, Array<BaseType>>, useImportWrapper:Bool):String
 	{
 		var output = "";
+		var importFunctionCode = useImportWrapper ? 'importPkg("%")' : 'require("%")';
 
 		for (m => tar in usedTypes)
 		{
@@ -26,7 +27,7 @@ class Modules extends SubCompiler
 				if (t.meta.has(":customImport"))
 					return "_";
 				return t.name;
-			}).join(", ")} = unpack(require("${m}"))\n';
+			}).join(", ")} = unpack(${importFunctionCode.replace("%", m)})\n';
 		}
 
 		return output;
