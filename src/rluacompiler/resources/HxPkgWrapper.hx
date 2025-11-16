@@ -1,7 +1,7 @@
 package rluacompiler.resources;
 
 final hxPkgWrapperPath:String = "HxPkgWrapper.lua";
-final hxPkgWrapperRequire:String = "local importPkg, _ = require(\"HxPkgWrapper\");";
+final hxPkgWrapperRequire:String = "local importPkg, _ = unpack(require(\"HxPkgWrapper\"));";
 final hxPkgWrapperContent:String = "
 local hxPkgWrapper = {}
 hxPkgWrapper.modules = {}
@@ -15,7 +15,7 @@ function hxPkgWrapper.importPkg(pkgName)
 	return unpack(mod)
 end
 
-return hxPkgWrapper.importPkg, hxPkgWrapper
+return {hxPkgWrapper.importPkg, hxPkgWrapper}
 ";
 
 // TODO: consider using a better system that implements placeholder metatables and stuff
