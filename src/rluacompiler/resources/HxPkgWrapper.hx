@@ -1,6 +1,7 @@
 package rluacompiler.resources;
 
-final hxPkgWrapperRequire:String = "local importPkg, _ = require(\"hxPkgWrapper\");";
+final hxPkgWrapperPath:String = "HxPkgWrapper.lua";
+final hxPkgWrapperRequire:String = "local importPkg, _ = require(\"HxPkgWrapper\");";
 final hxPkgWrapperContent:String = "
 local hxPkgWrapper = {}
 hxPkgWrapper.modules = {}

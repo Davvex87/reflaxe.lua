@@ -14,6 +14,7 @@ import reflaxe.output.OutputManager;
 import reflaxe.output.StringOrBytes;
 import rluacompiler.resources.HxPkgWrapper.hxPkgWrapperContent;
 import rluacompiler.resources.HxPkgWrapper.hxPkgWrapperRequire;
+import rluacompiler.resources.HxPkgWrapper.hxPkgWrapperPath;
 
 using reflaxe.helpers.BaseTypeHelper;
 using StringTools;
@@ -250,7 +251,7 @@ class Compiler extends DirectToStringCompiler
 		}
 
 		if (useImportWrapper)
-			output.saveFile("hxPkgWrapper.lua", hxPkgWrapperContent);
+			output.saveFile(hxPkgWrapperPath, hxPkgWrapperContent);
 	}
 }
 #end
