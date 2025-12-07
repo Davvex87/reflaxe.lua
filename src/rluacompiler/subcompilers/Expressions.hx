@@ -13,6 +13,7 @@ import haxe.macro.Type;
 import haxe.macro.TypedExprTools;
 import reflaxe.helpers.ArrayHelper;
 
+using rluacompiler.utils.ModuleUtils;
 using StringTools;
 
 class Expressions extends SubCompiler
@@ -28,6 +29,8 @@ class Expressions extends SubCompiler
 			case OpUShr: LuaVUtils.bitFuncField.opUShr;
 			case _: null;
 		}
+
+	var exprDepth:Int = 0;
 
 	public function compileExpressionImpl(expr:TypedExpr, depth:Int, ?previous:TypedExpr):Null<String>
 	{
@@ -88,24 +91,43 @@ class Expressions extends SubCompiler
 				}
 				var m = getTypeMetadatas(e1.t);
 				var arr = m?.has("luaIndexArray");
-				if (num != null) '${exprImpl(e1)}[${num + (arr ? 1 : 0)}]'; else '${exprImpl(e1)}[${exprImpl(e2)}${arr ? '+1' : ''}]';
+				var finalV = null;
+				exprDepth++;
+				if (num != null)
+					finalV = '${exprImpl(e1)}[${num + (arr ? 1 : 0)}]';
+				else
+					finalV = '${exprImpl(e1)}[${exprImpl(e2)}${arr ? '+1' : ''}]';
+				exprDepth--;
+				return finalV;
 
 			case TBinop(op, e1, e2):
 				switch (op)
 				{
 					case OpAssignOp(op):
 						var opFnCall = getOpProxy(op);
+						var finalV = null;
+						exprDepth++;
 						if (opFnCall != null)
-							return '${exprImpl(e1)} = ${StringTools.replace(LuaVUtils.bitFuncPattern, "{op}", opFnCall)}(${exprImpl(e1)}, ${exprImpl(e2)})';
-						return '${exprImpl(e1)} = ${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
+							finalV = '${exprImpl(e1)} = ${StringTools.replace(LuaVUtils.bitFuncPattern, "{op}", opFnCall)}(${exprImpl(e1)}, ${exprImpl(e2)})';
+						else
+							finalV = '${exprImpl(e1)} = ${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
+						exprDepth--;
+						return finalV;
 					default:
 						var opFnCall = getOpProxy(op);
+						var finalV = null;
+						exprDepth++;
 						if (opFnCall != null)
-							return '${StringTools.replace(LuaVUtils.bitFuncPattern, "{op}", opFnCall)}(${exprImpl(e1)}, ${exprImpl(e2)})';
-						return '${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
+							finalV = '${StringTools.replace(LuaVUtils.bitFuncPattern, "{op}", opFnCall)}(${exprImpl(e1)}, ${exprImpl(e2)})';
+						else
+							finalV = '${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
+						exprDepth--;
+						return finalV;
 				}
 
 			case TField(e, fa):
+				var finalV = null;
+				exprDepth++;
 				switch (fa)
 				{
 					case FInstance(c, params, cf):
@@ -116,20 +138,23 @@ class Expressions extends SubCompiler
 							case FVar(_, _): ".";
 							default: ".";
 						}
-						'${exprImpl(e)}${accessor}${field.name}';
+						finalV = '${exprImpl(e)}${accessor}${field.name}';
 					case FStatic(c, cf):
-						if (c.get()
-							.name.endsWith("_Fields_") && cf.get()
-							.isExtern) cf.get().name; else if (c.get().name.length == 0) cf.get().name; else '${c.get().name}.${cf.get().name}';
+						var cls = c.get();
+						var clsf = cf.get();
+						if (cls.name.endsWith("_Fields_") && clsf.isExtern) finalV = clsf.name; else if (cls.name.length == 0) finalV = clsf.name; else
+							finalV = '${cls.extractName()}.${clsf.name}';
 					case FAnon(cf):
-						'${exprImpl(e)}.${cf.get().name}';
+						finalV = '${exprImpl(e)}.${cf.get().name}';
 					case FDynamic(s):
-						'${exprImpl(e)}.${s}';
+						finalV = '${exprImpl(e)}.${s}';
 					case FClosure(c, cf):
-						'${exprImpl(e)}.${cf.get().name}';
+						finalV = '${exprImpl(e)}.${cf.get().name}';
 					case FEnum(e, ef):
-						'${e.get().name}.${ef.name}';
+						finalV = '${e.get().extractName()}.${ef.name}';
 				}
+				exprDepth--;
+				return finalV;
 
 			case TTypeExpr(m):
 				switch (m)
@@ -145,10 +170,16 @@ class Expressions extends SubCompiler
 				}
 
 			case TParenthesis(e):
-				'(${exprImpl(e)})';
+				var finalV = null;
+				exprDepth++;
+				finalV = '(${exprImpl(e)})';
+				exprDepth--;
+				return finalV;
 
 			case TObjectDecl(fields):
+				exprDepth++;
 				var fieldStrs = fields.map(f -> '${f.name} = ${exprImpl(f.expr)}');
+				exprDepth--;
 				if (fieldStrs.length == 0)
 					return '{}';
 
@@ -160,7 +191,9 @@ class Expressions extends SubCompiler
 				buff;
 
 			case TArrayDecl(el):
+				exprDepth++;
 				var elements = el.map(e -> exprImpl(e));
+				exprDepth--;
 				'{${elements.join(", ")}}';
 
 			case TCall(e, el):
@@ -187,7 +220,7 @@ class Expressions extends SubCompiler
 						}
 					case _:
 				};
-
+				exprDepth++;
 				var field = exprImpl(e);
 
 				var isSuperCall:Bool = field.startsWith("self.__super__");
@@ -198,21 +231,27 @@ class Expressions extends SubCompiler
 				var args = el.map(arg -> exprImpl(arg));
 				if (isSuperCall)
 					args.insert(0, "self");
+				exprDepth--;
 				'$field(${args.join(", ")})';
 
 			case TNew(c, params, el):
 				var code = main.compileNativeFunctionCodeMeta(expr, el);
 				if (code != null)
 					return code;
-
+				exprDepth++;
 				var args = el.map(arg -> exprImpl(arg));
+				exprDepth--;
 				'${c.get().name}.new(${args.join(", ")})';
 
 			case TUnop(op, postFix, e):
 				switch (op)
 				{
 					case OpIncrement:
+						exprDepth++;
 						var exprStr = exprImpl(e);
+						exprDepth--;
+						if (exprDepth == 0)
+							return '${exprStr} = ${exprStr} + 1;';
 						if (postFix)
 						{
 							var tempVar = '__temp_${Std.random(100000)}';
@@ -221,7 +260,12 @@ class Expressions extends SubCompiler
 						else '(function() ${exprStr} = ${exprStr} + 1; return ${exprStr} end)()';
 
 					case OpDecrement:
+						exprDepth++;
 						var exprStr = exprImpl(e);
+						exprDepth--;
+						if (exprDepth == 0)
+							return '${exprStr} = ${exprStr} - 1;';
+
 						if (postFix)
 						{
 							var tempVar = '__temp_${Std.random(100000)}';
@@ -230,13 +274,25 @@ class Expressions extends SubCompiler
 						else '(function() ${exprStr} = ${exprStr} - 1; return ${exprStr} end)()';
 
 					case OpNot:
-						'not ${exprImpl(e)}';
+						var finalV = null;
+						exprDepth++;
+						finalV = 'not ${exprImpl(e)}';
+						exprDepth--;
+						return finalV;
 
 					case OpNeg:
-						'-${exprImpl(e)}';
+						var finalV = null;
+						exprDepth++;
+						finalV = '-${exprImpl(e)}';
+						exprDepth--;
+						return finalV;
 
 					case OpNegBits:
-						'${StringTools.replace(LuaVUtils.bitFuncPattern, "{op}", LuaVUtils.bitFuncField.opNegBits)}(${exprImpl(e)})';
+						var finalV = null;
+						exprDepth++;
+						finalV = '${StringTools.replace(LuaVUtils.bitFuncPattern, "{op}", LuaVUtils.bitFuncField.opNegBits)}(${exprImpl(e)})';
+						exprDepth--;
+						return finalV;
 
 					default:
 						throw 'Unary operator ${op} not implemented';
@@ -253,13 +309,20 @@ class Expressions extends SubCompiler
 				});
 				var body = exprImpl(tfunc.expr, 1);
 
-				buff += '(function(${args.join(", ")})${buff.enter}';
+				buff += 'function(${args.join(", ")})${buff.enter}';
 				buff += body;
-				buff += '${buff.leave}end)';
+				buff += '${buff.leave}end';
 				buff;
 
 			case TVar(v, expr):
-				if (expr != null) 'local ${v.name} = ${exprImpl(expr)}'; else 'local ${v.name}';
+				var finalV = null;
+				exprDepth++;
+				if (expr != null)
+					finalV = 'local ${v.name} = ${exprImpl(expr)}';
+				else
+					finalV = 'local ${v.name}';
+				exprDepth--;
+				return finalV;
 
 			case TBlock(el):
 				var alreadyHasBlock = previous != null && switch (previous.expr)
@@ -273,9 +336,11 @@ class Expressions extends SubCompiler
 					case TTry(_, _): true;
 					default: false;
 				} var statements = el.map(e ->
-
 				{
+					var curDepth = exprDepth;
+					exprDepth -= curDepth;
 					var compiled = exprImpl(e, alreadyHasBlock ? 0 : 1);
+					exprDepth += curDepth;
 					return compiled;
 					// return alreadyHasBlock ? compiled : indent(depth + 1) + compiled;
 				});
@@ -300,9 +365,15 @@ class Expressions extends SubCompiler
 			case TFor(v, e1, e2):
 				var buff:CodeBuf = new CodeBuf();
 
+				exprDepth++;
 				var body = exprImpl(e2, 1);
+				exprDepth--;
+
+				var curDepth = exprDepth;
+				exprDepth -= curDepth;
 				// 'for ${v.name} in ${exprImpl(e1)} do\n${body}\nend';
 				buff += 'for ${v.name} in ${exprImpl(e1)} do${buff.enter}';
+				exprDepth += curDepth;
 				buff += body;
 				buff += '${buff.leave}end';
 				buff;
@@ -310,8 +381,13 @@ class Expressions extends SubCompiler
 			case TIf(econd, eif, eelse):
 				var buff:CodeBuf = new CodeBuf();
 
+				exprDepth++;
 				buff += 'if ${exprImpl(econd)} then${buff.enter}';
+				exprDepth--;
+				var curDepth = exprDepth;
+				exprDepth -= curDepth;
 				buff += exprImpl(eif, 1);
+				exprDepth += curDepth;
 
 				if (eelse != null && !isEmptyBlock(eelse))
 				{
@@ -319,7 +395,10 @@ class Expressions extends SubCompiler
 					buff += '${buff.leave}else';
 					if (!nextIsIf)
 						buff += '${buff.enter}';
+					var curDepth = exprDepth;
+					exprDepth -= curDepth;
 					buff += exprImpl(eelse, 1);
+					exprDepth += curDepth;
 					if (!nextIsIf)
 						buff += '${buff.leave}end';
 				}
@@ -331,10 +410,15 @@ class Expressions extends SubCompiler
 			case TWhile(econd, e, normalWhile):
 				var buff:CodeBuf = new CodeBuf();
 
+				var curDepth = exprDepth;
+				exprDepth -= curDepth;
 				var body = exprImpl(e, 1);
+				exprDepth += curDepth;
 				if (normalWhile)
 				{
+					exprDepth++;
 					buff += 'while ${exprImpl(econd)} do${buff.enter}';
+					exprDepth--;
 					buff += body;
 					buff += '${buff.leave}end';
 				}
@@ -342,7 +426,9 @@ class Expressions extends SubCompiler
 				{
 					buff += 'repeat${buff.enter}';
 					buff += body;
+					exprDepth++;
 					buff += '${buff.leave}until not (${exprImpl(econd)})';
+					exprDepth--;
 				}
 
 				buff;
@@ -350,16 +436,22 @@ class Expressions extends SubCompiler
 			case TSwitch(e, cases, edef):
 				// Lua doesn't have switch, so we'll compile to if-elseif chain
 				var buff:CodeBuf = new CodeBuf();
-
+				exprDepth++;
 				var switchVar = exprImpl(e);
+				exprDepth--;
 				var result = "";
 				var first = true;
 
 				for (c in cases)
 				{
+					exprDepth++;
 					var conditions = c.values.map(v -> '${switchVar} == ${exprImpl(v)}');
+					exprDepth--;
 					var condStr = conditions.join(' or ');
+					var curDepth = exprDepth;
+					exprDepth -= curDepth;
 					var caseBody = exprImpl(c.expr, 1);
+					exprDepth += curDepth;
 
 					if (first)
 					{
@@ -379,7 +471,10 @@ class Expressions extends SubCompiler
 				{
 					buff += buff.leave;
 					buff += 'else${buff.enter}';
+					var curDepth = exprDepth;
+					exprDepth -= curDepth;
 					buff += exprImpl(edef, 1);
+					exprDepth += curDepth;
 				}
 
 				buff += '${buff.leave}end';
@@ -392,7 +487,10 @@ class Expressions extends SubCompiler
 				var hasReturn = getReturnExpr(e) != null;
 
 				buff += 'local success, result = pcall(function()${buff.enter}';
+				var curDepth = exprDepth;
+				exprDepth -= curDepth;
 				buff += exprImpl(e);
+				exprDepth += curDepth;
 				buff += '${buff.leave}end)\n';
 
 				if (catches.length > 0)
@@ -400,7 +498,10 @@ class Expressions extends SubCompiler
 					buff += 'if not success then${buff.enter}';
 					for (c in catches)
 					{
+						var curDepth = exprDepth;
+						exprDepth -= curDepth;
 						var catchBody = exprImpl(c.expr, 1);
+						exprDepth += curDepth;
 						buff += 'local ${c.v.name} = result\n';
 						buff += '${catchBody}';
 					}
@@ -415,7 +516,14 @@ class Expressions extends SubCompiler
 				buff;
 
 			case TReturn(e):
-				if (e != null) 'return ${exprImpl(e)}'; else 'return';
+				var finalV = null;
+				exprDepth++;
+				if (e != null)
+					finalV = 'return ${exprImpl(e)}';
+				else
+					finalV = 'return';
+				exprDepth--;
+				finalV;
 
 			case TBreak:
 				'break';
@@ -424,7 +532,11 @@ class Expressions extends SubCompiler
 				'goto continue'; // Lua 5.2+ has goto
 
 			case TThrow(e):
-				'error(${exprImpl(e)})';
+				var finalV = null;
+				exprDepth++;
+				finalV = 'error(${exprImpl(e)})';
+				exprDepth--;
+				finalV;
 
 			case TCast(e, m):
 				// In Lua, casting is usually just returning the value

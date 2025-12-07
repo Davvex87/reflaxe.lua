@@ -26,4 +26,31 @@ class ModuleUtils
 
 		return true;
 	}
+
+	public static function extractName(t:BaseType):String
+	{
+		var name =
+			{
+				if (t.meta.has(":native"))
+				{
+					var expr = t.meta.extract(":native")[0].params[0].expr;
+					switch (expr)
+					{
+						case EConst(c):
+							switch (c)
+							{
+								case CString(s):
+									s;
+								default:
+									t.name;
+							}
+						default:
+							t.name;
+					}
+				}
+				else
+					t.name;
+			};
+		return name;
+	}
 }
