@@ -213,7 +213,10 @@ class Compiler extends DirectToStringCompiler
 			final decls = typesPerModule.get(moduleId) ?? [];
 			head.push("local " + decls.map(t -> t.name).join(", ") + " = " + decls.map(t -> "{}").join(", ") + ";");
 			if (useImportWrapper)
+			{
 				head.push(hxPkgWrapperRequire);
+				head.push('registerPkg("${moduleId}", {${decls.map(t -> t.name).join(", ")}});');
+			}
 			else
 				head.push('package.loaded["${moduleId}"] = {${decls.map(t -> t.name).join(", ")}};');
 

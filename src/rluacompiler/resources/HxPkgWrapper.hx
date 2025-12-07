@@ -1,21 +1,25 @@
 package rluacompiler.resources;
 
 final hxPkgWrapperPath:String = "HxPkgWrapper.lua";
-final hxPkgWrapperRequire:String = "local importPkg, _ = unpack(require(\"HxPkgWrapper\"));";
+final hxPkgWrapperRequire:String = "local importPkg, registerPkg, _ = unpack(require(\"HxPkgWrapper\"));";
 final hxPkgWrapperContent:String = "
 local hxPkgWrapper = {}
 hxPkgWrapper.modules = {}
+hxPkgWrapper.loaded = {}
 
-function hxPkgWrapper.importPkg(pkgName)
-	local mod = hxPkgWrapper.modules[pkgName]
-	if not mod then
-		mod = table.pack(require(pkgName))
-		hxPkgWrapper.modules[pkgName] = mod
-	end
-	return unpack(mod)
+function hxPkgWrapper.registerPkg(pkgName, types)
+    hxPkgWrapper.modules[pkgName] = types
 end
 
-return {hxPkgWrapper.importPkg, hxPkgWrapper}
+function hxPkgWrapper.importPkg(pkgName)
+	if hxPkgWrapper.loaded[pkgName] == nil then
+		hxPkgWrapper.loaded[pkgName] = true
+		require(pkgName)
+	end
+	return hxPkgWrapper.modules[pkgName]
+end
+
+return {hxPkgWrapper.importPkg, hxPkgWrapper.registerPkg, hxPkgWrapper}
 ";
 
 // TODO: consider using a better system that implements placeholder metatables and stuff
