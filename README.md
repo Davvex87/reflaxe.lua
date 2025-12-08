@@ -6,7 +6,7 @@ If you're interested in helping the project, read the [Contributing](#contributi
 <br><br><br><br><br><br>
 <a id="reflaxe.lua"></a>
 
-<img src="img/reflaxe.lua banner.png" style="image-rendering: pixelated;" />
+<img src="https://github.com/Davvex87/reflaxe.lua/blob/main/img/reflaxe.lua%20banner.png?raw=true" style="image-rendering: pixelated;" />
 
 A compiler that compiles Haxe code into native Lua 5.1 without all of the bloat that the default Haxe compiler produces. It attempts to match Haxe's sources as closely as possible to their Lua implementations (arrays and objects get converted into tables, Int, Int64, Int32, Float and Double also just get converted to Lua's number type, etc...).
 
