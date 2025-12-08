@@ -1,6 +1,6 @@
 {
   "name": "reflaxe.Lua",
-  "version": "0.25.50",
+  "version": "0.25.51",
   "description": "A cleaner implementation of the Lua target for Haxe",
   "url": "http://github.com/Davvex87/reflaxe.lua",
   "tags": ["reflaxe"],
@@ -8,7 +8,7 @@
     "reflaxe": "4.0.0-beta"
   },
   "classPath": "src/",
-  "releasenote": "Initial release.",
+  "releasenote": "New package wrapper system",
   "contributors": ["Davvex87"],
   "license": "MIT",
   "reflaxe": {
