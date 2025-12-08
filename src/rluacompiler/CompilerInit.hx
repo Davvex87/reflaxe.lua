@@ -7,6 +7,7 @@ import rluacompiler.preprocessors.implementations.*;
 import reflaxe.BaseCompiler;
 import reflaxe.BaseCompiler.BaseCompilerOptions;
 import rluacompiler.utils.LuaVUtils;
+import haxe.macro.Context;
 
 class CompilerInit
 {
@@ -57,6 +58,7 @@ class CompilerInit
 		#end
 
 		compiler = Type.createInstance(COMPILER_CLASS, []);
+		compiler.importWrapperClassStr = Context.definedValue("import_wrapper");
 		ReflectCompiler.AddCompiler(compiler, COMPILER_OPTIONS);
 	}
 }

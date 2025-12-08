@@ -3,16 +3,17 @@ package rluacompiler.subcompilers;
 #if (macro || rlua_runtime)
 import haxe.macro.Type.BaseType;
 import reflaxe.output.StringOrBytes;
+import rluacompiler.resources.IPkgWrapper;
 
 using StringTools;
 
 class Modules extends SubCompiler
 {
 	public function compileImports(curMod:String, usedTypes:Map<String, Array<BaseType>>, files:Map<String, Array<StringOrBytes>>,
-			typesPerModule:Map<String, Array<BaseType>>, useImportWrapper:Bool):String
+			typesPerModule:Map<String, Array<BaseType>>, pkgWrapperClass:Null<IPkgWrapper>):String
 	{
 		var output = "";
-		var importFunctionCode = useImportWrapper ? 'importPkg("%")' : 'require("%")';
+		var importFunctionCode = pkgWrapperClass != null ? 'importPkg("%")' : 'require("%")';
 
 		for (m => tar in usedTypes)
 		{
@@ -27,7 +28,13 @@ class Modules extends SubCompiler
 				if (t.meta.has(":customImport"))
 					return "_";
 				return t.name;
-			}).join(", ")} = unpack(${importFunctionCode.replace("%", m)})\n';
+			}).join(", ")}';
+			output += {
+				if (pkgWrapperClass != null)
+					' = ${pkgWrapperClass.importCode(m)}\n';
+				else
+					' = require("$m")\n';
+			};
 		}
 
 		return output;

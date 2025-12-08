@@ -1,8 +1,22 @@
 package rluacompiler.resources;
 
-final hxPkgWrapperPath:String = "HxPkgWrapper.lua";
-final hxPkgWrapperRequire:String = "local importPkg, registerPkg, _ = unpack(require(\"HxPkgWrapper\"));";
-final hxPkgWrapperContent:String = "
+#if (macro || rlua_runtime)
+import haxe.macro.Type.BaseType;
+
+@:keepSub
+class HxPkgWrapper implements IPkgWrapper
+{
+	public function new() {}
+
+	public var requireCode = (moduleId:String) -> 'local importPkg, registerPkg, _ = unpack(require(\"HxPkgWrapper\"));';
+
+	public var registerCode = (moduleId:String, decls:Array<BaseType>) -> 'registerPkg("$moduleId", {${decls.map(t -> t.name).join(", ")}});';
+
+	public var importCode = (moduleId:String) -> 'unpack(importPkg("$moduleId"))';
+
+	public var filePath = "HxPkgWrapper.lua";
+
+	public var wrapperCode = "
 local hxPkgWrapper = {}
 hxPkgWrapper.modules = {}
 hxPkgWrapper.loaded = {}
@@ -21,7 +35,8 @@ end
 
 return {hxPkgWrapper.importPkg, hxPkgWrapper.registerPkg, hxPkgWrapper}
 ";
-
+}
+#end
 // TODO: consider using a better system that implements placeholder metatables and stuff
 /*
 	local hxPkgWrapper = {}

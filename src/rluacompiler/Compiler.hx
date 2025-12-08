@@ -12,9 +12,7 @@ import rluacompiler.utils.TypeExtractor;
 import haxe.macro.Context;
 import reflaxe.output.OutputManager;
 import reflaxe.output.StringOrBytes;
-import rluacompiler.resources.HxPkgWrapper.hxPkgWrapperContent;
-import rluacompiler.resources.HxPkgWrapper.hxPkgWrapperRequire;
-import rluacompiler.resources.HxPkgWrapper.hxPkgWrapperPath;
+import rluacompiler.resources.*;
 
 using reflaxe.helpers.BaseTypeHelper;
 using StringTools;
@@ -38,7 +36,7 @@ class Compiler extends DirectToStringCompiler
 	public var customImports:Map<String, Array<BaseType>> = new Map<String, Array<BaseType>>();
 	public var topLevelCode:Map<String, Array<String>> = new Map<String, Array<String>>();
 
-	public var useImportWrapper:Bool = Context.defined("use_import_wrapper");
+	public var importWrapperClassStr:Null<String> = null;
 
 	function addTypesToMod(baseModule:String, types:Array<BaseType>)
 	{
@@ -189,7 +187,7 @@ class Compiler extends DirectToStringCompiler
 		return expressionsSubCompiler.compileExpressionImpl(expr, 0);
 	}
 
-	override public function generateFilesManually() @:privateAccess {
+	override public function generateFilesManually():Void @:privateAccess {
 		output.ensureOutputDirExists();
 
 		final files:Map<String, Array<StringOrBytes>> = [];
@@ -206,22 +204,39 @@ class Compiler extends DirectToStringCompiler
 				f.push(c.data);
 		}
 
+		final pkgWrapperClass:Null<IPkgWrapper> =
+			{
+				trace(importWrapperClassStr);
+				if (importWrapperClassStr == null)
+					null;
+				else if (importWrapperClassStr == "1")
+					Type.createInstance(rluacompiler.resources.HxPkgWrapper, []);
+				else
+				{
+					var cls = Type.resolveClass(importWrapperClassStr);
+					trace(cls);
+					if (cls == null)
+						throw 'Could not resolve class "$importWrapperClassStr"';
+					Type.createInstance(cls, []);
+				}
+			}
+
 		for (moduleId => outputList in files)
 		{
 			final head:Array<StringOrBytes> = [];
 
 			final decls = typesPerModule.get(moduleId) ?? [];
 			head.push("local " + decls.map(t -> t.name).join(", ") + " = " + decls.map(t -> "{}").join(", ") + ";");
-			if (useImportWrapper)
+			if (pkgWrapperClass != null)
 			{
-				head.push(hxPkgWrapperRequire);
-				head.push('registerPkg("${moduleId}", {${decls.map(t -> t.name).join(", ")}});');
+				head.push(pkgWrapperClass.requireCode(moduleId));
+				head.push(pkgWrapperClass.registerCode(moduleId, decls));
 			}
 			else
 				head.push('package.loaded["${moduleId}"] = {${decls.map(t -> t.name).join(", ")}};');
 
 			final t = usedTypesPerModule.get(moduleId) ?? new Map<String, Array<BaseType>>();
-			head.push(modulesSubCompiler.compileImports(moduleId, t, files, typesPerModule, useImportWrapper));
+			head.push(modulesSubCompiler.compileImports(moduleId, t, files, typesPerModule, pkgWrapperClass));
 
 			for (_ => cls in customImports.get(moduleId) ?? [])
 			{
@@ -253,8 +268,8 @@ class Compiler extends DirectToStringCompiler
 			output.saveFile(output.getFileName(moduleId.replace(".", "/")), OutputManager.joinStringOrBytes(finalOutputList));
 		}
 
-		if (useImportWrapper)
-			output.saveFile(hxPkgWrapperPath, hxPkgWrapperContent);
+		if (pkgWrapperClass != null)
+			output.saveFile(pkgWrapperClass.filePath, pkgWrapperClass.wrapperCode);
 	}
 }
 #end
