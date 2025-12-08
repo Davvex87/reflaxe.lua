@@ -1,3 +1,4 @@
 _Build/
 test/out
 test/out.lua
+/*.zip

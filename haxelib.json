@@ -9,6 +9,8 @@
   },
   "classPath": "src/",
   "releasenote": "Initial release.",
+  "contributors": ["Davvex87"],
+  "license": "MIT",
   "reflaxe": {
     "name": "Lua",
     "abbv": "rlua",
