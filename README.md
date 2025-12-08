@@ -133,7 +133,7 @@ How many of Haxe's language features are correctly compiled to their Lua alterna
   - ``haxelib install reflaxe 4.0.0-beta``
 
 2. Installing the library:
-  - haxelib: **haxelib install not yet available**
+  - haxelib: ``haxelib install reflaxe.lua``
   - github: ``haxelib git reflaxe.lua https://github.com/Davvex87/reflaxe.lua.git``
 
 <a id="adding-to-project"></a>
