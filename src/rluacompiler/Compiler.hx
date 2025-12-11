@@ -15,6 +15,7 @@ import reflaxe.output.StringOrBytes;
 import rluacompiler.resources.*;
 
 using reflaxe.helpers.BaseTypeHelper;
+using reflaxe.helpers.TypedExprHelper;
 using StringTools;
 
 /**
@@ -185,6 +186,58 @@ class Compiler extends DirectToStringCompiler
 	public function compileExpressionImpl(expr:TypedExpr, topLevel:Bool):Null<String>
 	{
 		return expressionsSubCompiler.compileExpressionImpl(expr, 0);
+	}
+
+	public function compileNativeVariableCodeMetaWithAccessor(fieldExpr:TypedExpr, varCpp:Null<String> = null, accessor:Null<String> = null):Null<String>
+	{
+		final declaration = fieldExpr.getDeclarationMeta();
+		if (declaration == null)
+		{
+			return null;
+		}
+		final meta = declaration.meta;
+		final data = meta != null ? extractStringFromMeta(meta, ":nativeVariableCode") : null;
+		if (data != null)
+		{
+			final code = data.code;
+			var result = code;
+
+			if (code.contains("{this}"))
+			{
+				final thisExpr = declaration.thisExpr != null ? compileNFCThisExpression(declaration.thisExpr, declaration.meta) : null;
+				if (thisExpr == null)
+				{
+					if (declaration.thisExpr == null)
+					{
+						#if eval
+						Context.error("Cannot use {this} on @:nativeVariableCode meta for constructors.", data.entry.pos);
+						#end
+					}
+					else
+					{
+						onExpressionUnsuccessful(fieldExpr.pos);
+					}
+				}
+				else
+				{
+					result = result.replace("{this}", thisExpr);
+				}
+			}
+
+			if (varCpp != null && code.contains("{var}"))
+			{
+				result = result.replace("{var}", varCpp);
+			}
+
+			if (accessor != null && code.contains("{accessor}"))
+			{
+				result = result.replace("{accessor}", accessor);
+			}
+
+			return result;
+		}
+
+		return null;
 	}
 
 	override public function generateFilesManually():Void @:privateAccess {

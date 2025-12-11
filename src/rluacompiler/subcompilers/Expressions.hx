@@ -138,12 +138,22 @@ class Expressions extends SubCompiler
 							case FVar(_, _): ".";
 							default: ".";
 						}
-						finalV = '${exprImpl(e)}${accessor}${field.name}';
+						var code = main.compileNativeVariableCodeMetaWithAccessor(e, field.name, accessor);
+						if (code != null) finalV = code; else finalV = '${exprImpl(e)}${accessor}${field.name}';
 					case FStatic(c, cf):
-						var cls = c.get();
 						var clsf = cf.get();
-						if (cls.name.endsWith("_Fields_") && clsf.isExtern) finalV = clsf.name; else if (cls.name.length == 0) finalV = clsf.name; else
-							finalV = '${cls.extractName()}.${clsf.name}';
+						var code = main.compileNativeVariableCodeMetaWithAccessor(e, clsf.name, ".");
+						if (code != null)
+							finalV = code;
+						{
+							var cls = c.get();
+							if (cls.name.endsWith("_Fields_") && clsf.isExtern)
+								finalV = clsf.name;
+							else if (cls.name.length == 0)
+								finalV = clsf.name;
+							else
+								finalV = '${cls.extractName()}.${clsf.name}';
+						}
 					case FAnon(cf):
 						finalV = '${exprImpl(e)}.${cf.get().name}';
 					case FDynamic(s):
