@@ -8,7 +8,7 @@
     "reflaxe": "4.0.0-beta"
   },
   "classPath": "src/",
-  "releasenote": "New package wrapper system",
+  "releasenote": "Support for @:nativeVariableCode",
   "contributors": ["Davvex87"],
   "license": "MIT",
   "reflaxe": {
