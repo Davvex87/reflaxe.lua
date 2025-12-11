@@ -259,7 +259,6 @@ class Compiler extends DirectToStringCompiler
 
 		final pkgWrapperClass:Null<IPkgWrapper> =
 			{
-				trace(importWrapperClassStr);
 				if (importWrapperClassStr == null)
 					null;
 				else if (importWrapperClassStr == "1")
@@ -267,7 +266,6 @@ class Compiler extends DirectToStringCompiler
 				else
 				{
 					var cls = Type.resolveClass(importWrapperClassStr);
-					trace(cls);
 					if (cls == null)
 						throw 'Could not resolve class "$importWrapperClassStr"';
 					Type.createInstance(cls, []);

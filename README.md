@@ -1,9 +1,3 @@
-# LOOKING FOR CONTRIBUTORS
-
-As the sole maintainer, implementing everything in the [Haxe Standard Library](https://github.com/HaxeFoundation/haxe/tree/4.3.7/std) is a significant, time consuming task. Contributions are welcome and appreciated.
-<br>
-If you're interested in helping the project, read the [Contributing](#contributing) section for more information on how you can support this project ⭐.
-<br><br><br><br><br><br>
 <a id="reflaxe.lua"></a>
 
 <img src="https://github.com/Davvex87/reflaxe.lua/blob/main/img/reflaxe.lua%20banner.png?raw=true" style="image-rendering: pixelated;" />
@@ -18,6 +12,8 @@ Made to be editable and extendable to other Lua versions/subsets (i.e. Lua 5.3, 
 		<img src="https://i.imgur.com/oZkCZ2C.png" alt="Reflaxe" width="80" style="vertical-align: middle;" />
 	</a>
 </p>
+
+Also check-out [roblox-hx](https://github.com/Davvex87/roblox-hx)!
 
 ## Example
 

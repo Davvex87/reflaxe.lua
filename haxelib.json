@@ -1,6 +1,6 @@
 {
   "name": "reflaxe.Lua",
-  "version": "0.25.51",
+  "version": "0.26.51",
   "description": "A cleaner implementation of the Lua target for Haxe",
   "url": "http://github.com/Davvex87/reflaxe.lua",
   "tags": ["reflaxe"],
