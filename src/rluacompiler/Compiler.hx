@@ -13,6 +13,8 @@ import haxe.macro.Context;
 import reflaxe.output.OutputManager;
 import reflaxe.output.StringOrBytes;
 import rluacompiler.resources.*;
+import rluacompiler.resources.HxPkgWrapper;
+import rluacompiler.resources.RblxPkgWrapper;
 
 using reflaxe.helpers.BaseTypeHelper;
 using reflaxe.helpers.TypedExprHelper;
