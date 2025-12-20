@@ -319,9 +319,9 @@ class Expressions extends SubCompiler
 				});
 				var body = exprImpl(tfunc.expr, 1);
 
-				buff += 'function(${args.join(", ")})${buff.enter}';
+				buff += '(function(${args.join(", ")})${buff.enter}';
 				buff += body;
-				buff += '${buff.leave}end';
+				buff += '${buff.leave}end)';
 				buff;
 
 			case TVar(v, expr):

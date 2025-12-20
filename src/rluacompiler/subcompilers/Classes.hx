@@ -62,9 +62,18 @@ class Classes extends SubCompiler
 			if (properties.length > 0)
 				output += '${classType.name}.__properties__ = {${properties.join(", ")}}\n';
 
+			var inlinesStatics:Array<ClassVarData> = [];
 			for (varf in varFields)
 			{
-				if (varf.isStatic)
+				if (!varf.isStatic)
+					continue;
+				var expr = varf.field.expr();
+				if (expr == null)
+					continue;
+
+				if (expr.expr.match(TBlock(_)))
+					inlinesStatics.push(varf);
+				else
 					output += main.fieldsSubCompiler.compileStaticImpl(varf);
 			}
 
@@ -80,6 +89,18 @@ class Classes extends SubCompiler
 				var r = main.fieldsSubCompiler.compileFuncImpl(func);
 				if (r != null)
 					output += r;
+			}
+
+			if (inlinesStatics.length > 0)
+			{
+				output += "\ndo\n";
+				for (varf in inlinesStatics)
+				{
+					var r = main.expressionsSubCompiler.compileExpressionImpl(varf.field.expr(), 0);
+					if (r != null)
+						output += '\t' + StringTools.replace(r, "\n", "\n\t") + '\n';
+				}
+				output += 'end\n';
 			}
 		}
 
