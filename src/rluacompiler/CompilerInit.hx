@@ -31,7 +31,8 @@ class CompilerInit
 			Custom(new ConvertBitwiseOperators(LuaVUtils.bitFuncPattern, LuaVUtils.bitFuncField)),
 			Custom(new Lua51LoopContinuePatch()),
 			Custom(new LuaMultiReturnPatch()),
-			Custom(new ExprBinopFix())
+			Custom(new ExprBinopFix()),
+			Custom(new ArrayLengthFix())
 		],
 		fileOutputExtension: ".lua",
 		outputDirDefineName: "lua-output",
