@@ -90,7 +90,7 @@ class Expressions extends SubCompiler
 						null;
 				}
 				var m = getTypeMetadatas(e1.t);
-				var arr = m?.has("luaIndexArray");
+				var arr = m?.has(":luaIndexArray");
 				var finalV = null;
 				exprDepth++;
 				if (num != null)
@@ -596,6 +596,24 @@ class Expressions extends SubCompiler
 		{
 			case TBlock(el):
 				el.length == 0;
+			case _:
+				false;
+		}
+
+	public function isArrayType(t:Type)
+		return switch (t)
+		{
+			case TMono(t):
+				isArrayType(t.get());
+			case TFun(args, ret):
+				isArrayType(ret);
+			case TAbstract(t1, params):
+				var impl = t1.get().impl;
+				if (impl == null)
+					return false;
+				impl.get().name == "Array";
+			case TInst(t, params):
+				t.get().name == "Array";
 			case _:
 				false;
 		}
