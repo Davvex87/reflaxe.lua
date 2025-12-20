@@ -155,7 +155,13 @@ class Expressions extends SubCompiler
 								finalV = '${cls.extractName()}.${clsf.name}';
 						}
 					case FAnon(cf):
-						finalV = '${exprImpl(e)}.${cf.get().name}';
+						var accessor = switch (cf.get().kind)
+						{
+							case FMethod(_) if (!e.expr.match(TConst(TSuper))): ":";
+							case FVar(_, _): ".";
+							default: ".";
+						}
+						finalV = '${exprImpl(e)}$accessor${cf.get().name}';
 					case FDynamic(s):
 						finalV = '${exprImpl(e)}.${s}';
 					case FClosure(c, cf):
