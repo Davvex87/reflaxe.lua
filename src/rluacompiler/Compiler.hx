@@ -137,6 +137,7 @@ class Compiler extends DirectToStringCompiler
 		if (!customImports.exists(classType.module))
 			customImports.set(classType.module, []);
 
+		// FIXME: This does not appear to work for the PosException class
 		if (classType.superClass != null)
 			addTypesToMod(classType.module, [classType.superClass.t.get()]);
 

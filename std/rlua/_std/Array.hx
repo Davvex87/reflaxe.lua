@@ -34,8 +34,8 @@ extern class Array<T> implements ArrayAccess<T>
 	@:nativeFunctionCode("table.remove({this}, 1)")
 	function shift():Null<T>;
 
-	inline function slice(pos:Int, ?end:Int):Array<T>
-		return ArrayTools.slice(this, pos, end);
+	inline function slice(pos:Int, ?_end:Int):Array<T>
+		return ArrayTools.slice(this, pos, _end);
 
 	@:nativeFunctionCode("table.sort({this}, function(a, b) return {arg0}(a, b) < 0 end)")
 	function sort(f:T->T->Int):Void;
