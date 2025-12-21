@@ -21,6 +21,12 @@
  */
 
 /**
+	NOTE: This implementation uses Lua 5.1 patterns which are different and simpler than
+	full PCRE regular expressions.
+	For more information, read:
+	 - https://www.lua.org/manual/5.1/manual.html#5.4.1
+	 - https://stackoverflow.com/a/6192354
+
 	The EReg class represents regular expressions.
 
 	While basic usage and patterns consistently work across platforms, some more
@@ -35,9 +41,6 @@
 
 	A detailed explanation of the supported operations is available at
 	<https://haxe.org/manual/std-regex.html>
-
-	Note: This implementation uses Lua 5.1 patterns which are simpler than
-	full PCRE regular expressions. Some complex patterns may not work identically.
 **/
 class EReg
 {
@@ -84,12 +87,9 @@ class EReg
 
 	function doMatch(str:String, startPos:Int):Bool
 	{
-		// Lua's string.find returns 1-based indices
-		// We wrap the pattern in () to capture the whole match if there are no captures
 		var luaPattern = pattern;
 		var hasCaptures = pattern.indexOf("(") != -1;
 
-		// Handle case-insensitive matching by converting to lowercase if 'i' option
 		var searchStr = str;
 		var searchPattern = luaPattern;
 
@@ -99,62 +99,56 @@ class EReg
 			searchPattern = untyped __lua__("string.lower({0})", luaPattern);
 		}
 
-		// Lua uses 1-based indexing, add 1 to startPos
+		// Lua uses 1-based indexing
 		var luaStart = startPos + 1;
+
+		// Reset state
+		matchStart = -1;
+		matchEnd = -1;
+
+		// Pack all results from string.find into a table (called once!)
+		var numResults:Int = untyped __lua__("select('#', string.find({0}, {1}, {2}))", searchStr, searchPattern, luaStart);
+
+		if (numResults == 0)
+		{
+			captures = [];
+			return false;
+		}
+
+		// Get start and end positions
+		var resultStart:Null<Int> = untyped __lua__("(select(1, string.find({0}, {1}, {2})))", searchStr, searchPattern, luaStart);
+
+		if (resultStart == null)
+		{
+			captures = [];
+			return false;
+		}
+
+		var resultEnd:Int = untyped __lua__("(select(2, string.find({0}, {1}, {2})))", searchStr, searchPattern, luaStart);
+
+		// Convert 1-based to 0-based
+		matchStart = resultStart - 1;
+		matchEnd = resultEnd;
+
+		// Build captures array
+		var newCaptures:Array<String> = [];
+
+		// Index 0 = whole match (use original string for correct case)
+		newCaptures.push(str.substr(matchStart, matchEnd - matchStart));
 
 		if (hasCaptures)
 		{
-			// Pattern has captures, use string.find to get positions, then string.match for captures
-			var result:Dynamic = untyped __lua__("{ string.find({0}, {1}, {2}) }", searchStr, searchPattern, luaStart);
-
-			if (result == null || untyped __lua__("{0}[1]", result) == null)
-			{
-				matchStart = -1;
-				matchEnd = -1;
-				captures = [];
-				return false;
-			}
-
-			// Convert 1-based to 0-based
-			matchStart = untyped __lua__("{0}[1] - 1", result);
-			matchEnd = untyped __lua__("{0}[2]", result); // end is inclusive in Lua, we want exclusive
-
-			// Extract captures (indices 3+ in the result)
-			captures = [];
-			// First capture is the whole match
-			captures.push(str.substr(matchStart, matchEnd - matchStart));
-
+			// Get captured groups (results 3+)
 			var i = 3;
-			while (true)
+			while (i <= numResults)
 			{
-				var cap:Dynamic = untyped __lua__("{0}[{1}]", result, i);
-				if (cap == null)
-					break;
-				captures.push(cap);
+				var cap:String = untyped __lua__("(select({0}, string.find({1}, {2}, {3})))", i, searchStr, searchPattern, luaStart);
+				newCaptures.push(cap);
 				i++;
 			}
 		}
-		else
-		{
-			// No captures in pattern, wrap entire pattern to capture whole match
-			var result:Dynamic = untyped __lua__("{ string.find({0}, {1}, {2}) }", searchStr, searchPattern, luaStart);
 
-			if (result == null || untyped __lua__("{0}[1]", result) == null)
-			{
-				matchStart = -1;
-				matchEnd = -1;
-				captures = [];
-				return false;
-			}
-
-			// Convert 1-based to 0-based
-			matchStart = untyped __lua__("{0}[1] - 1", result);
-			matchEnd = untyped __lua__("{0}[2]", result);
-
-			captures = [];
-			captures.push(str.substr(matchStart, matchEnd - matchStart));
-		}
-
+		captures = newCaptures;
 		return true;
 	}
 
