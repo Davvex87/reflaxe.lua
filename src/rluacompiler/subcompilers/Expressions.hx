@@ -66,7 +66,7 @@ class Expressions extends SubCompiler
 						"self";
 
 					case TSuper:
-						"self.__super__";
+						"__super__";
 
 					default:
 						null;
@@ -239,9 +239,9 @@ class Expressions extends SubCompiler
 				exprDepth++;
 				var field = exprImpl(e);
 
-				var isSuperCall:Bool = field.startsWith("self.__super__");
+				var isSuperCall:Bool = field.startsWith("__super__");
 
-				if (field == "self.__super__")
+				if (field == "__super__")
 					field += ".__constructor";
 
 				var args = el.map(arg -> exprImpl(arg));

@@ -29,7 +29,7 @@ class Classes extends SubCompiler
 		output += '${classType.name}.__name__ = "${classType.name}"\n';
 
 		if (superClassName != null)
-			output += '${classType.name}.__super__ = ${superClassName}\n';
+			output += 'local __super__ = ${superClassName}\n';
 
 		if (classType.interfaces.length > 0)
 			output += '${classType.name}.__interfaces__ = {${classType.interfaces.map((i) -> i.t.get().name).join(", ")}}\n';
