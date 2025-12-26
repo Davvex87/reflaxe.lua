@@ -67,14 +67,15 @@ class Classes extends SubCompiler
 			{
 				if (!varf.isStatic)
 					continue;
-				var expr = varf.field.expr();
+
+				var expr = varf.expr;
 				if (expr == null)
 					continue;
 
-				if (expr.expr.match(TBlock(_)))
-					inlinesStatics.push(varf);
-				else
+				if (varf.canBeInlined)
 					output += main.fieldsSubCompiler.compileStaticImpl(varf);
+				else
+					inlinesStatics.push(varf);
 			}
 
 			if (hasInstField)
@@ -96,7 +97,7 @@ class Classes extends SubCompiler
 				output += "\ndo\n";
 				for (varf in inlinesStatics)
 				{
-					var r = main.expressionsSubCompiler.compileExpressionImpl(varf.field.expr(), 0);
+					var r = main.expressionsSubCompiler.compileExpressionImpl(varf.expr, 0);
 					if (r != null)
 						output += '\t' + StringTools.replace(r, "\n", "\n\t") + '\n';
 				}

@@ -28,7 +28,7 @@ class Fields extends SubCompiler
 	public function compileStaticImpl(varf:ClassVarData):Null<String>
 	{
 		var output = "";
-		var expr = varf.field.expr();
+		var expr = varf.expr;
 		if (expr != null)
 			output += main.expressionsSubCompiler.compileExpressionImpl(cast {
 				expr: TBinop(OpAssign, {
