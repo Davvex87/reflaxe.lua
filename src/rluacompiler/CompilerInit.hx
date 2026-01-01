@@ -41,7 +41,8 @@ class CompilerInit
 		targetCodeInjectionName: "__lua__",
 		manualDCE: false,
 		trackUsedTypes: true,
-		ignoreTypes: []
+		ignoreTypes: [],
+		convertStaticVarExpressionsToFunctions: false
 	};
 
 	public static var compiler:Compiler;
