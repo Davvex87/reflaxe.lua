@@ -25,9 +25,16 @@ extern class Array<T> implements ArrayAccess<T>
 	@:nativeFunctionCode("table.remove({this}, #{this})")
 	function pop():Null<T>;
 
-	@:nativeFunctionCode("table.insert({this}, {arg0})")
-	function push(x:T):Void;
+	// FIXME: Create a PR over on reflaxe to pre-process inline functions to not include the return variable if this is not wanted.
+	inline function push(x:T):Void
+		this[this.length] = x;
 
+	/*
+		inline function push(x:T):Int
+		{
+			this[this.length] = x;
+			return this.length;
+	}*/
 	inline function reverse():Void
 		ArrayTools.reverse(this);
 

@@ -2,29 +2,123 @@ package rlua;
 
 class LuaStringTools
 {
+	public static function indexOf(base:String, str:String, ?startIndex:Int):Int
+	{
+		if (startIndex == null)
+			startIndex = 1;
+		else
+			startIndex += 1;
+		if (str == "")
+		{
+			return indexOfEmpty(base, startIndex - 1);
+		}
+		var r = untyped __lua__("string.find({0}, {1}, ({2} or 0), true)", base, str, startIndex);
+		if (r != null && r > 0)
+			return r - 1;
+		else
+			return -1;
+	}
+
 	public static function lastIndexOf(base:String, str:String, ?startIndex:Int):Int
 	{
-		var last = -1;
-		var i = ((startIndex != null) ? startIndex : base.length - 1);
+		var ret = -1;
+		if (startIndex == null)
+			startIndex = base.length;
 		while (true)
 		{
-			var found = untyped __lua__("string.find({0}, {1}, {2}, true)", base, str, last + 2);
-			if (found == null || found - 1 > i)
+			var p = indexOf(base, str, ret + 1);
+			if (p == -1 || p > startIndex || p == ret)
 				break;
-			last = found - 1;
+			ret = p;
 		}
-		return last;
+		return ret;
 	}
+
+	static function indexOfEmpty(s:String, startIndex:Int):Int
+	{
+		var length = s.length;
+		if (startIndex < 0)
+		{
+			startIndex = length + startIndex;
+			if (startIndex < 0)
+				startIndex = 0;
+		}
+		return startIndex > length ? length : startIndex;
+	}
+
+	public static function substr(s:String, pos:Int, ?len:Int):String
+	{
+		if (len == null || len > pos + s.length)
+			len = s.length;
+		else if (len < 0)
+			len = s.length + len;
+		if (pos < 0)
+			pos = s.length + pos;
+		if (pos < 0)
+			pos = 0;
+		return untyped __lua__("string.sub({0}, {1} + 1, {1} + ({2} or (#{0} - {1} + 1)))", s, pos, len);
+		// return BaseString.sub(this, pos + 1, pos + len).match;
+	}
+
+	public static function substring(s:String, startIndex:Int, ?endIndex:Int):String
+	{
+		if (endIndex == null)
+			endIndex = s.length;
+		if (endIndex < 0)
+			endIndex = 0;
+		if (startIndex < 0)
+			startIndex = 0;
+		if (endIndex < startIndex)
+		{
+			// swap the index positions
+			// return BaseString.sub(this, endIndex + 1, startIndex).match;
+			return untyped __lua__("string.sub({0}, {1}, {2})", s, endIndex + 1, startIndex);
+		}
+		else
+		{
+			// return BaseString.sub(this, startIndex + 1, endIndex).match;
+			return untyped __lua__("string.sub({0}, {1}, {2})", s, startIndex + 1, endIndex);
+		}
+	}
+
+	#if !roblox
+	static inline function escape_pattern(s)
+		return untyped __lua__('{0}:gsub("([%%%^%$%(%)%.%[%]%*%+%-%?])", "%%%1")', s);
 
 	public static function split(str:String, delim:String):Array<String>
 	{
 		untyped __lua__('
-	local result = {}
-	for part in string.gmatch({0}, "([^" .. {1} .. "]+)") do
-		table.insert(result, part)
-	end', str, delim);
-		return untyped result;
+   local t = {}
+
+   -- default: split on whitespace
+   if delim == nil then
+      for s in str:gmatch("%S+") do
+         t[#t + 1] = s
+      end
+      return t
+   end
+
+   -- empty separator = split into characters
+   if delim == "" then
+      for i = 1, #str do
+         t[#t + 1] = str:sub(i, i)
+      end
+      return t
+   end
+
+   -- escape separator so it behaves literally
+   delim = {2}(delim)
+
+   local pattern = "([^" .. delim .. "]+)"
+   for s in str:gmatch(pattern) do
+      t[#t + 1] = s
+   end', str, delim, escape_pattern);
+		return untyped t;
 	}
+	#else
+	@:nativeFunctionCode("string.split({arg0}, {arg1})")
+	public static extern function split(str:String, delim:String):Array<String>;
+	#end
 
 	public static function codes(s:String):String->Int->StringCodePoint
 	{

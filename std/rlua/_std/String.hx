@@ -25,13 +25,7 @@ extern class String
 		return untyped #if lua_utf8 utf8.codepoint(this, index + 1) #else string.byte(this, index + 1) #end;
 
 	inline function indexOf(str:String, ?startIndex:Int):Int
-	{
-		var ff = untyped __lua__("string.find({0}, {1}, ({2} or 0)+1, true)", this, str, startIndex);
-		if (ff == null)
-			return -1;
-		else
-			return ff - 1;
-	}
+		return LuaStringTools.indexOf(this, str, startIndex);
 
 	inline function lastIndexOf(str:String, ?startIndex:Int):Int
 		return LuaStringTools.lastIndexOf(this, str, startIndex);
@@ -40,10 +34,10 @@ extern class String
 		return LuaStringTools.split(this, delimiter);
 
 	inline function substr(pos:Int, ?len:Int):String
-		return untyped __lua__("string.sub({0}, {1} + 1, {1} + ({2} or (#{0} - {1} + 1)))", this, pos, len);
+		return LuaStringTools.substr(this, pos, len);
 
 	inline function substring(startIndex:Int, ?endIndex:Int):String
-		return untyped __lua__("string.sub({0}, ({1}) + 1, ({2} or 1))", this, startIndex ?? 0, endIndex);
+		return LuaStringTools.substring(this, startIndex, endIndex);
 
 	@:nativeFunctionCode("tostring({this})")
 	function toString():String;
