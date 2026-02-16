@@ -625,6 +625,9 @@ class Expressions extends SubCompiler
 		}
 
 	public function isStringType(t:Type)
+	{
+		if (t == null)
+			return false;
 		return switch (t)
 		{
 			case TMono(t):
@@ -641,6 +644,7 @@ class Expressions extends SubCompiler
 			case _:
 				false;
 		}
+	}
 
 	public function isStringExpr(e:TypedExprDef):Bool
 		return switch (e)
