@@ -33,7 +33,7 @@ class Modules extends SubCompiler
 				if (pkgWrapperClass != null)
 					' = ${pkgWrapperClass.importCode(m)}\n';
 				else
-					' = require("$m")\n';
+					' = unpack(${importFunctionCode.replace("%", m)})\n';
 			};
 		}
 
