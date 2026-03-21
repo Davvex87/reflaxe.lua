@@ -73,7 +73,7 @@ class Expressions extends SubCompiler
 				}
 
 			case TLocal(v):
-				v.name;
+				compileVarName(v.name);
 
 			case TArray(e1, e2):
 				var num = switch (e2.expr)
@@ -132,42 +132,48 @@ class Expressions extends SubCompiler
 				{
 					case FInstance(c, params, cf):
 						var field = cf.get();
+						var fname = compileVarName(field.name, e, field);
 						var accessor = switch (field.kind)
 						{
 							case FMethod(_) if (!e.expr.match(TConst(TSuper))): ":";
 							case FVar(_, _): ".";
 							default: ".";
 						}
-						var code = main.compileNativeVariableCodeMetaWithAccessor(e, field.name, accessor);
-						if (code != null) finalV = code; else finalV = '${exprImpl(e)}${accessor}${field.name}';
+						var code = main.compileNativeVariableCodeMetaWithAccessor(e, fname, accessor);
+						if (code != null) finalV = code; else finalV = '${exprImpl(e)}${accessor}${fname}';
 					case FStatic(c, cf):
 						var clsf = cf.get();
-						var code = main.compileNativeVariableCodeMetaWithAccessor(e, clsf.name, ".");
+						var fname = compileVarName(clsf.name, e, cf.get());
+						var code = main.compileNativeVariableCodeMetaWithAccessor(e, fname, ".");
 						if (code != null)
 							finalV = code;
 						{
 							var cls = c.get();
 							if (cls.name.endsWith("_Fields_") && clsf.isExtern)
-								finalV = clsf.name;
+								finalV = fname;
 							else if (cls.name.length == 0)
-								finalV = clsf.name;
+								finalV = fname;
 							else
-								finalV = '${cls.extractName()}.${clsf.name}';
+								finalV = '${cls.extractName()}.${fname}';
 						}
 					case FAnon(cf):
+						var fname = compileVarName(cf.get().name, e, cf.get());
 						var accessor = switch (cf.get().kind)
 						{
 							case FMethod(_) if (!e.expr.match(TConst(TSuper))): ":";
 							case FVar(_, _): ".";
 							default: ".";
 						}
-						finalV = '${exprImpl(e)}$accessor${cf.get().name}';
+						finalV = '${exprImpl(e)}$accessor${fname}';
 					case FDynamic(s):
-						finalV = '${exprImpl(e)}.${s}';
+						var fname = compileVarName(s, e, null);
+						finalV = '${exprImpl(e)}.${fname}';
 					case FClosure(c, cf):
-						finalV = '${exprImpl(e)}.${cf.get().name}';
-					case FEnum(e, ef):
-						finalV = '${e.get().extractName()}.${ef.name}';
+						var fname = compileVarName(cf.get().name, e, cf.get());
+						finalV = '${exprImpl(e)}.${fname}';
+					case FEnum(en, ef):
+						var fname = compileVarName(ef.name, e, null);
+						finalV = '${en.get().extractName()}.${fname}';
 				}
 				exprDepth--;
 				return finalV;
@@ -333,10 +339,11 @@ class Expressions extends SubCompiler
 			case TVar(v, expr):
 				var finalV = null;
 				exprDepth++;
+				var vname = compileVarName(v.name, expr);
 				if (expr != null)
-					finalV = 'local ${v.name} = ${exprImpl(expr)}';
+					finalV = 'local ${vname} = ${exprImpl(expr)}';
 				else
-					finalV = 'local ${v.name}';
+					finalV = 'local ${vname}';
 				exprDepth--;
 				return finalV;
 
@@ -569,11 +576,16 @@ class Expressions extends SubCompiler
 				'${exprImpl(e1)}._index';
 
 			case TIdent(s):
-				s;
+				compileVarName(s);
 
 			default:
 				null; // throw new NotImplementedException('${expr.expr} has not yet been defined to be compiled');
 		}
+	}
+
+	inline function compileVarName(name:String, expr:Null<TypedExpr> = null, field:Null<ClassField> = null):String
+	{
+		return main.compileVarName(name, expr, field);
 	}
 
 	private var _lastRetExpr:Null<TypedExpr> = null;

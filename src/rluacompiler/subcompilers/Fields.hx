@@ -32,7 +32,7 @@ class Fields extends SubCompiler
 		if (expr != null)
 			output += main.expressionsSubCompiler.compileExpressionImpl(cast {
 				expr: TBinop(OpAssign, {
-					expr: TIdent('${varf.classType.name}.${varf.field.name}'),
+					expr: TIdent('${varf.classType.name}.${main.compileVarName(varf.field.name)}'),
 					t: expr.t,
 					pos: expr.pos
 				}, expr),
@@ -52,20 +52,20 @@ class Fields extends SubCompiler
 		var output = "";
 		var argsStr = "";
 		var clsName = func.classType.name;
-		var funcName = func.field.name == "new" ? "__constructor" : func.field.name;
+		var funcName = func.field.name == "new" ? "__constructor" : main.compileVarName(func.field.name);
 
 		var restArgs:Array<String> = [];
 
 		for (arg in func.args)
 		{
-			var name = switch (arg.type)
+			var name = main.compileVarName(switch (arg.type)
 			{
 				case TAbstract(t, _) if (t.get().name == "Rest" && ArrayHelper.equals(t.get().pack, ["haxe"])):
 					restArgs.push(arg.getName());
 					"...";
 				default:
 					arg.getName();
-			}
+			});
 			argsStr += name + (func.args.indexOf(arg) < func.args.length - 1 ? ", " : "");
 		}
 
