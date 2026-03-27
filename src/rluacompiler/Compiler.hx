@@ -3,7 +3,6 @@ package rluacompiler;
 #if (macro || rlua_runtime)
 import rluacompiler.utils.ModuleUtils;
 import rluacompiler.subcompilers.*;
-import haxe.macro.Type;
 import reflaxe.DirectToStringCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
@@ -15,6 +14,10 @@ import reflaxe.output.StringOrBytes;
 import rluacompiler.resources.*;
 import rluacompiler.resources.HxPkgWrapper;
 import rluacompiler.resources.RblxPkgWrapper;
+import haxe.macro.Type.ClassType;
+import haxe.macro.Type.EnumType;
+import haxe.macro.Type.BaseType;
+import haxe.macro.Type.TypedExpr;
 
 using reflaxe.helpers.BaseTypeHelper;
 using reflaxe.helpers.TypedExprHelper;
