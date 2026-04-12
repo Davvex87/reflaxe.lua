@@ -2,7 +2,7 @@ package rluacompiler.preprocessors.implementations;
 
 #if (macro || rlua_runtime)
 import reflaxe.BaseCompiler;
-import reflaxe.data.ClassFuncData;
+import reflaxe.data.ClassFieldData;
 import reflaxe.preprocessors.BasePreprocessor;
 import haxe.macro.Expr;
 import haxe.macro.Type;
@@ -17,7 +17,7 @@ class LuaMultiReturnPatch extends BasePreprocessor
 	var compiler:BaseCompiler;
 	var haxeModules:Array<ModuleType>;
 
-	public function process(data:ClassFuncData, compiler:BaseCompiler)
+	public function process(data:ClassFieldData, compiler:BaseCompiler)
 	{
 		this.compiler = compiler;
 		haxeModules = @:privateAccess ReflectCompiler.haxeProvidedModuleTypes ?? [];
