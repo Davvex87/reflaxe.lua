@@ -269,7 +269,11 @@ class Expressions extends SubCompiler
 						var fname = compileVarName(field.name, e, field);
 						var accessor = switch (field.kind)
 						{
-							case FMethod(_) if (!e.expr.match(TConst(TSuper))): ":";
+							case FMethod(_) if (!e.expr.match(TConst(TSuper))):
+								if (previous != null) switch (previous.expr) {
+									case TBinop(OpAssign, e1, _) | TBinop(OpAssignOp(_), e1, _) if (e1 == expr): ".";
+									default: ":";
+								} else ":";
 							case FVar(_, _): ".";
 							default: ".";
 						}
@@ -294,7 +298,11 @@ class Expressions extends SubCompiler
 						var fname = compileVarName(cf.get().name, e, cf.get());
 						var accessor = switch (cf.get().kind)
 						{
-							case FMethod(_) if (!e.expr.match(TConst(TSuper))): ":";
+							case FMethod(_) if (!e.expr.match(TConst(TSuper))):
+								if (previous != null) switch (previous.expr) {
+									case TBinop(OpAssign, e1, _) | TBinop(OpAssignOp(_), e1, _) if (e1 == expr): ".";
+									default: ":";
+								} else ":";
 							case FVar(_, _): ".";
 							default: ".";
 						}
@@ -457,6 +465,10 @@ class Expressions extends SubCompiler
 			case TFunction(tfunc):
 				var buff:CodeBuf = new CodeBuf();
 				var args = tfunc.args.map(arg -> isRestType(arg.v.t) ? "..." : arg.v.name);
+				if (previous != null) switch (previous.expr) {
+					case TBinop(OpAssign, e1, _) if (isMethodField(e1)): args.unshift("self");
+					default:
+				}
 				var body = exprImpl(tfunc.expr, 1);
 
 				buff += '(function(${args.join(", ")})${buff.enter}';
@@ -745,6 +757,21 @@ class Expressions extends SubCompiler
 			case _:
 				false;
 		}
+
+	public function isMethodField(expr:Null<TypedExpr>):Bool
+	{
+		if (expr == null) return false;
+		return switch (expr.expr) {
+			case TField(_, fa): switch (fa) {
+				case FInstance(_, _, cf) | FAnon(cf): switch (cf.get().kind) {
+					case FMethod(_): true;
+					default: false;
+				}
+				default: false;
+			}
+			default: false;
+		};
+	}
 
 	public function isArrayType(t:Type)
 		return switch (t)
