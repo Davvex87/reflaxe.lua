@@ -12,10 +12,10 @@ extern class String
 	@:nativeFunctionCode("{arg0}")
 	function new(string:String);
 
-	@:native("lower")
+	@:native("upper")
 	function toUpperCase():String;
 
-	@:native("upper")
+	@:native("lower")
 	function toLowerCase():String;
 
 	inline function charAt(index:Int):String
