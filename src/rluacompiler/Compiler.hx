@@ -7,7 +7,7 @@ import reflaxe.DirectToStringCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.EnumOptionData;
-import rluacompiler.utils.TypeExtractor;
+import rluacompiler.utils.UsedTypeCollector;
 import haxe.macro.Context;
 import reflaxe.output.OutputManager;
 import reflaxe.output.StringOrBytes;
@@ -57,25 +57,19 @@ class Compiler extends DirectToStringCompiler
 			}
 			else
 			{
+				var mod = ut.module;
+				if (!st.exists(mod))
+					st.set(mod, []);
+				var arr = st.get(mod);
 				var found = false;
-				for (m => tar in st)
-				{
-					for (t in tar)
-						if (t.equals(ut))
-						{
-							found = true;
-							break;
-						}
-				}
-
-				if (!found)
-				{
-					if (!st.exists(ut.module))
+				for (t in arr)
+					if (t.equals(ut))
 					{
-						st.set(ut.module, []);
+						found = true;
+						break;
 					}
-					st.get(ut.module).push(ut);
-				}
+				if (!found)
+					arr.push(ut);
 			}
 		}
 	}
@@ -152,13 +146,13 @@ class Compiler extends DirectToStringCompiler
 		{
 			var e = varf.field.expr();
 			if (e != null)
-				addTypesToMod(classType.module, TypeExtractor.extractAllUsedTypes(e));
+				addTypesToMod(classType.module, UsedTypeCollector.extract(e).getTypes());
 		}
 		for (funcf in funcFields)
 		{
 			var e = funcf.expr;
 			if (e != null)
-				addTypesToMod(classType.module, TypeExtractor.extractAllUsedTypes(e));
+				addTypesToMod(classType.module, UsedTypeCollector.extract(e).getTypes());
 		}
 
 		return data;
@@ -278,9 +272,14 @@ class Compiler extends DirectToStringCompiler
 				}
 			}
 
+		var sourceHeader = Context.definedValue("source_header");
+
+		if (sourceHeader == null || sourceHeader.length < 1)
+			sourceHeader = "";
+
 		for (moduleId => outputList in files)
 		{
-			final head:Array<StringOrBytes> = [];
+			final head:Array<StringOrBytes> = ['-- $sourceHeader'];
 
 			final decls = typesPerModule.get(moduleId) ?? [];
 			head.push("local " + decls.map(t -> t.name).join(", ") + " = " + decls.map(t -> "{}").join(", ") + ";");
