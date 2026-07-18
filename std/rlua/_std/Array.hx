@@ -301,7 +301,7 @@ extern class Array<T> implements ArrayAccess<T>
 	/**
 		Returns an iterator of the Array values.
 	**/
-	public inline function iterator():ArrayIterator<T>
+	@:runtime public inline function iterator():ArrayIterator<T>
 		return new ArrayIterator(this);
 
 	/**
