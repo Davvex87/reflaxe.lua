@@ -1,5 +1,9 @@
 package rlua;
 
+import haxe.EntryPoint;
+import haxe.MainLoop;
+
+@:keep
 class Boot
 {
 	// A max stack size to respect for unpack operations

@@ -20,6 +20,7 @@ import haxe.macro.Type.BaseType;
 import haxe.macro.Type.TypedExpr;
 import haxe.io.Path;
 import sys.io.File;
+import haxe.Template;
 
 using reflaxe.helpers.BaseTypeHelper;
 using reflaxe.helpers.TypedExprHelper;
@@ -263,8 +264,27 @@ class Compiler extends DirectToStringCompiler
 		if (sourceHeader == null || sourceHeader.length < 1)
 			sourceHeader = "";
 
+		var mainClass = haxe.macro.Compiler.getConfiguration().mainClass;
+		var entryWrapper:Null<String> = Context.definedValue("entry_wrapper");
+
+		var entryCode:Null<String> = null;
+		var mainClassId:Null<String> = null;
+		if (mainClass != null)
+		{
+			mainClassId = mainClass.pack.concat([mainClass.name]).join(".");
+			var entryCodeSample = CompilerInit.getResource("_hx_entry.lua");
+			var template = new Template(entryCodeSample);
+			entryCode = template.execute({
+				moduleid: mainClassId,
+			});
+		}
+
 		for (moduleId => outputList in files)
 		{
+			final isMainModule = entryWrapper == null
+				&& mainClass != null
+				&& mainClass.pack.concat([mainClass.name]).join(".") == moduleId;
+
 			final head:Array<StringOrBytes> = ['-- $sourceHeader'];
 
 			final decls = typesPerModule.get(moduleId) ?? [];
@@ -319,9 +339,30 @@ class Compiler extends DirectToStringCompiler
 			{
 				finalOutputList.push(code + "\n");
 			}
-			finalOutputList.push('\nreturn {${decls.map(t -> t.name).join(", ")}}');
+
+			if (isMainModule)
+			{
+				if (!usedTypes.exists("haxe.EntryPoint"))
+					finalOutputList.push(runtimeConfig.resolveImport(["EntryPoint"], "haxe.EntryPoint"));
+				finalOutputList.push(entryCode);
+			}
+			else
+				finalOutputList.push('\nreturn {${decls.map(t -> t.name).join(", ")}}');
 
 			output.saveFile(output.getFileName(moduleId.replace(".", "/")), OutputManager.joinStringOrBytes(finalOutputList));
+		}
+
+		if (entryWrapper != null && mainClass != null)
+		{
+			var initCodeSample = CompilerInit.getResource("_hx_init.lua");
+			var template = new Template(initCodeSample);
+			var initOut = template.execute({
+				requirecode: runtimeConfig.resolveRequire(),
+				importcode: runtimeConfig.resolveImport([mainClass.name], mainClassId) + "\n" + runtimeConfig.resolveImport(["EntryPoint"], "haxe.EntryPoint"),
+				entrycode: entryCode
+			});
+
+			output.saveFile(entryWrapper, initOut);
 		}
 
 		var runtimeLuaScriptPath = runtimeConfig.getRuntimePath();

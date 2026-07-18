@@ -11,6 +11,7 @@ import haxe.macro.Context;
 import sys.io.Process;
 import haxe.Template;
 import haxe.io.Path;
+import sys.io.File;
 
 using StringTools;
 
@@ -76,6 +77,8 @@ class CompilerInit
 
 	public static var compiler:Compiler;
 
+	static var libPath:String;
+
 	public static function Start()
 	{
 		#if !eval
@@ -88,6 +91,8 @@ class CompilerInit
 		return;
 		#end
 
+		libPath = haxelib(resolve -> "reflaxe.lua", "reflaxe.lua");
+
 		var runtimeFile:String = Context.definedValue("runtime_config") ?? "$$haxelib(reflaxe.lua)/src/resources/HxRuntime_noWrapper.json";
 		var parsedPath = new Template(runtimeFile).execute({}, CompilerInit);
 
@@ -98,8 +103,17 @@ class CompilerInit
 		ReflectCompiler.AddCompiler(compiler, COMPILER_OPTIONS);
 	}
 
+	public static function getResource(path:String):String
+	{
+		var fullPath = Path.join([libPath, "src", "resources", path]);
+		return File.getContent(fullPath);
+	}
+
 	@:keep static function haxelib(resolve:String->Dynamic, lib:String):String
 	{
+		if (lib == "reflaxe.lua" && libPath != null)
+			return libPath;
+
 		var process = new Process("haxelib", ["libpath", lib]);
 		if (process.exitCode() != 0)
 			throw 'haxelib libpath failed for library $lib: ${process.stderr.readAll().toString()}';
