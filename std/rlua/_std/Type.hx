@@ -115,7 +115,12 @@ class Type
 		The class name must not include any type parameters.
 	**/
 	public static function resolveClass(name:String):Class<Dynamic>
-		return @:privateAccess Runtime._hxClasses.get(name);
+	{
+		var cl = Runtime.classes[name];
+		if (cl == null || !Runtime.isClass(cl))
+			return null;
+		return cl;
+	}
 
 	/**
 		Resolves an enum by name.
@@ -131,7 +136,12 @@ class Type
 		The enum name must not include any type parameters.
 	**/
 	public static function resolveEnum(name:String):Enum<Dynamic>
-		return @:privateAccess cast Runtime._hxClasses.get(name);
+	{
+		var e = Runtime.classes[name];
+		if (e == null || !Runtime.isEnum(e))
+			return null;
+		return e;
+	}
 
 	/**
 		Creates an instance of class `cl`, using `args` as arguments to the
@@ -151,7 +161,7 @@ class Type
 		guaranteed to be taken into account.
 	**/
 	public static function createInstance<T>(cl:Class<T>, args:Array<Dynamic>):T
-		untyped return cl["new"](table.unpack(args));
+		untyped return cl["new"](unpack(cast args));
 
 	/**
 		Creates an instance of class `cl`.
@@ -161,7 +171,7 @@ class Type
 		If `cl` is null, the result is unspecified.
 	**/
 	public static function createEmptyInstance<T>(cl:Class<T>):T
-		untyped return setmetatable({__tostring: function(self) return Type.getClassName(cl), __class__: cl}, cl);
+		untyped return setmetatable(cast {__tostring: function(self) return Type.getClassName(cl), __class__: cl}, cast cl);
 
 	/**
 		Creates an instance of enum `e` by calling its constructor `constr` with
@@ -176,7 +186,7 @@ class Type
 	{
 		var c = e[constr];
 		if (type(c) == "function")
-			return c(unpack(params));
+			return c(unpack(cast params));
 		else
 			return c.index;
 	}

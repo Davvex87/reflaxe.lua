@@ -8,15 +8,18 @@ import reflaxe.BaseCompiler;
 import reflaxe.BaseCompiler.BaseCompilerOptions;
 import rluacompiler.utils.LuaVUtils;
 import haxe.macro.Context;
+import sys.io.Process;
+import haxe.Template;
+import haxe.io.Path;
+
+using StringTools;
 
 class CompilerInit
 {
 	public static final COMPILER_CLASS:Class<Dynamic> = Compiler;
 	public static final COMPILER_OPTIONS:BaseCompilerOptions = {
 		expressionPreprocessors: [
-			Custom(new IteratorFix([
-				{abstractModule: "haxe.ds.Map"}
-			])),
+			Custom(new IteratorFix([{abstractModule: "haxe.ds.Map"}])),
 			SanitizeEverythingIsExpression({
 				convertIncrementAndDecrementOperators: true,
 				convertNullCoalescing: false, // true
@@ -85,9 +88,23 @@ class CompilerInit
 		return;
 		#end
 
+		var runtimeFile:String = Context.definedValue("runtime_config") ?? "$$haxelib(reflaxe.lua)/src/resources/HxRuntime_noWrapper.json";
+		var parsedPath = new Template(runtimeFile).execute({}, CompilerInit);
+
+		var runtimeConfig:RuntimeConfig = RuntimeConfig.fromFile(parsedPath);
+
 		compiler = Type.createInstance(COMPILER_CLASS, []);
-		compiler.importWrapperClassStr = Context.definedValue("import_wrapper");
+		compiler.runtimeConfig = runtimeConfig;
 		ReflectCompiler.AddCompiler(compiler, COMPILER_OPTIONS);
+	}
+
+	@:keep static function haxelib(resolve:String->Dynamic, lib:String):String
+	{
+		var process = new Process("haxelib", ["libpath", lib]);
+		if (process.exitCode() != 0)
+			throw 'haxelib libpath failed for library $lib: ${process.stderr.readAll().toString()}';
+		var out = process.stdout.readAll().toString().replace("\n", "").replace("\r", "").trim();
+		return Path.normalize(out);
 	}
 }
 #end

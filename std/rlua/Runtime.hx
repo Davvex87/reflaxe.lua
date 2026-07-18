@@ -1,59 +1,40 @@
 package rlua;
 
-class Runtime
+@:native("HxRuntime")
+extern class Runtime
 {
-	private static final _hxClasses:Map<String, Class<Dynamic>> = new Map();
+	@:native("classes")
+	static var classes:Map<String, Dynamic>;
 
 	// TODO: implement the lua-safe compiler def stuff here
+	@:native("IsTable")
+	static function isTable(o:Dynamic):Bool;
 
-	public static function isTable(o:Dynamic):Bool
-		return untyped type(o) == "table";
+	@:native("IsMetatable")
+	static function isMetatable(o:Dynamic):Bool;
 
-	public static function isMetatable(o:Dynamic):Bool
-		return untyped type(o) == "table" && untyped getmetatable(o) != null;
+	@:native("IsArray")
+	static function isArray(o:Dynamic):Bool;
 
-	public static function isArray(o:Dynamic):Bool
-	{
-		if (!isTable(o) || isMetatable(o))
-			return false;
+	@:native("IsObject")
+	static function isObject(o:Dynamic):Bool;
 
-		untyped __lua__('
-local count = 0
-local numeric = 0
-for k in pairs(t) do
-	count = count + 1
-	if type(k) == "number" and k % 1 == 0 and k >= 1 then
-		numeric = numeric + 1
-	end
-end');
+	@:native("IsClass")
+	static function isClass(o:Dynamic):Bool;
 
-		return untyped (numeric == count);
-	}
+	@:native("IsInstance")
+	static function isInstance(o:Dynamic):Bool;
 
-	public static function isObject(o:Dynamic):Bool
-		return !isArray(o) && isTable(o);
+	@:native("IsInterface")
+	static function isInterface(o:Dynamic):Bool;
 
-	public static function isClass(o:Dynamic):Bool
-		return isMetatable(o) && untyped o.__index != null && untyped type(o.__name__) == "string";
+	@:native("IsEnum")
+	static function isEnum(o:Dynamic):Bool;
 
-	public static function isInstance(o:Dynamic):Bool
-		return isMetatable(o) && isMetatable(untyped o.__class__);
-
-	public static function isInterface(o:Dynamic):Bool
-		return isMetatable(o) && untyped type(o.__interface__) == "table";
-
-	public static function isEnum(o:Dynamic):Bool
-		return isMetatable(o) && untyped type(o.__fenum__) == "table";
-
-	public static function isEnumIndex(o:Dynamic):Bool
-		return isMetatable(o) && isMetatable(untyped o.__enum__);
+	@:native("IsEnumIndex")
+	static function isEnumIndex(o:Dynamic):Bool;
 
 	@:noCompletion
-	public static function buildMultiReturn(n:Array<String>, ...v:Dynamic):Dynamic
-	{
-		var t = {};
-		for (i in 0...n.length)
-			untyped t[n[i]] = v[i];
-		return t;
-	}
+	@:native("BuildMultiReturn")
+	static function buildMultiReturn(n:Array<String>, ...v:Dynamic):Dynamic;
 }

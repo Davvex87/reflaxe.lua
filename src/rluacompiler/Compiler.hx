@@ -18,6 +18,8 @@ import haxe.macro.Type.ClassType;
 import haxe.macro.Type.EnumType;
 import haxe.macro.Type.BaseType;
 import haxe.macro.Type.TypedExpr;
+import haxe.io.Path;
+import sys.io.File;
 
 using reflaxe.helpers.BaseTypeHelper;
 using reflaxe.helpers.TypedExprHelper;
@@ -35,14 +37,14 @@ class Compiler extends DirectToStringCompiler
 	public var fieldsSubCompiler:Fields;
 	public var expressionsSubCompiler:Expressions;
 	public var enumsSubCompiler:Enums;
-	public var modulesSubCompiler:Modules;
 
 	public var typesPerModule:Map<String, Array<BaseType>> = new Map<String, Array<BaseType>>();
 	public var usedTypesPerModule:Map<String, Map<String, Array<BaseType>>> = new Map<String, Map<String, Array<BaseType>>>();
 	public var customImports:Map<String, Array<BaseType>> = new Map<String, Array<BaseType>>();
 	public var topLevelCode:Map<String, Array<String>> = new Map<String, Array<String>>();
 
-	public var importWrapperClassStr:Null<String> = null;
+	// public var importWrapperClassStr:Null<String> = null;
+	public var runtimeConfig:RuntimeConfig;
 
 	function addTypesToMod(baseModule:String, types:Array<BaseType>)
 	{
@@ -80,7 +82,6 @@ class Compiler extends DirectToStringCompiler
 		fieldsSubCompiler = new Fields(this);
 		expressionsSubCompiler = new Expressions(this);
 		enumsSubCompiler = new Enums(this);
-		modulesSubCompiler = new Modules(this);
 
 		super();
 	}
@@ -257,21 +258,6 @@ class Compiler extends DirectToStringCompiler
 				f.push(c.data);
 		}
 
-		final pkgWrapperClass:Null<IPkgWrapper> =
-			{
-				if (importWrapperClassStr == null)
-					null;
-				else if (importWrapperClassStr == "1")
-					Type.createInstance(rluacompiler.resources.HxPkgWrapper, []);
-				else
-				{
-					var cls = Type.resolveClass(importWrapperClassStr);
-					if (cls == null)
-						throw 'Could not resolve class "$importWrapperClassStr"';
-					Type.createInstance(cls, []);
-				}
-			}
-
 		var sourceHeader = Context.definedValue("source_header");
 
 		if (sourceHeader == null || sourceHeader.length < 1)
@@ -283,16 +269,30 @@ class Compiler extends DirectToStringCompiler
 
 			final decls = typesPerModule.get(moduleId) ?? [];
 			head.push("local " + decls.map(t -> t.name).join(", ") + " = " + decls.map(t -> "{}").join(", ") + ";");
-			if (pkgWrapperClass != null)
-			{
-				head.push(pkgWrapperClass.requireCode(moduleId));
-				head.push(pkgWrapperClass.registerCode(moduleId, decls));
-			}
-			else
-				head.push('package.loaded["${moduleId}"] = {${decls.map(t -> t.name).join(", ")}};');
+			head.push(runtimeConfig.resolveRequire());
+			head.push(runtimeConfig.resolveRegister(moduleId, decls.map(t -> t.name)));
 
-			final t = usedTypesPerModule.get(moduleId) ?? new Map<String, Array<BaseType>>();
-			head.push(modulesSubCompiler.compileImports(moduleId, t, files, typesPerModule, pkgWrapperClass));
+			final usedTypes = usedTypesPerModule.get(moduleId) ?? new Map<String, Array<BaseType>>();
+
+			var imports:Array<String> = [];
+			for (m => tar in usedTypes)
+			{
+				if (moduleId == m)
+					continue;
+				if (!files.exists(m))
+					continue;
+				var ts = typesPerModule.get(m);
+				if (ts == null || ts.length == 0)
+					continue;
+				imports.push(runtimeConfig.resolveImport(ts.map(t ->
+				{
+					if (t.meta.has(":customImport"))
+						return "_";
+					return t.name;
+				}), m));
+			}
+
+			head.push(imports.join("\n"));
 
 			for (_ => cls in customImports.get(moduleId) ?? [])
 			{
@@ -324,8 +324,9 @@ class Compiler extends DirectToStringCompiler
 			output.saveFile(output.getFileName(moduleId.replace(".", "/")), OutputManager.joinStringOrBytes(finalOutputList));
 		}
 
-		if (pkgWrapperClass != null)
-			output.saveFile(pkgWrapperClass.filePath, pkgWrapperClass.wrapperCode);
+		var runtimeLuaScriptPath = runtimeConfig.getRuntimePath();
+		var runtimeLuaScriptContent = File.getContent(runtimeLuaScriptPath);
+		output.saveFile(Path.withoutDirectory(runtimeLuaScriptPath), runtimeLuaScriptContent);
 	}
 }
 #end

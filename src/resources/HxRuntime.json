@@ -1,0 +1,6 @@
+{
+	"requireStr": "local ImportPackage, RegisterPackage, HxRuntime = unpack(require(\"HxRuntime\"));",
+	"registerStr": "RegisterPackage(\"::moduleid::\", {$$join(::types::)});",
+	"importStr": "local $$join(::types::) = unpack(ImportPackage(\"::moduleid::\"))",
+	"runtimePath": "HxRuntime.lua"
+}

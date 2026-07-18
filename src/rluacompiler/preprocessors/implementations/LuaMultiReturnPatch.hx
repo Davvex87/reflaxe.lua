@@ -6,8 +6,8 @@ import reflaxe.data.ClassFieldData;
 import reflaxe.preprocessors.BasePreprocessor;
 import haxe.macro.Expr;
 import haxe.macro.Type;
-import reflaxe.helpers.ArrayHelper;
-import reflaxe.ReflectCompiler;
+import reflaxe.helpers.NullHelper;
+import haxe.macro.Context;
 import haxe.macro.TypedExprTools;
 
 class LuaMultiReturnPatch extends BasePreprocessor
@@ -15,12 +15,10 @@ class LuaMultiReturnPatch extends BasePreprocessor
 	public function new() {}
 
 	var compiler:BaseCompiler;
-	var haxeModules:Array<ModuleType>;
 
 	public function process(data:ClassFieldData, compiler:BaseCompiler)
 	{
 		this.compiler = compiler;
-		haxeModules = @:privateAccess ReflectCompiler.haxeProvidedModuleTypes ?? [];
 		data.setExpr(processExpr(data.expr));
 	}
 
@@ -44,66 +42,72 @@ class LuaMultiReturnPatch extends BasePreprocessor
 					case _:
 				}
 
-				if (multiReturnType == null || !multiReturnType.get().meta.has(":multiReturn"))
-					return TypedExprTools.map(expr, processExpr);
+			if (multiReturnType == null || !NullHelper.trustMe(multiReturnType).get().meta.has(":multiReturn"))
+				return TypedExprTools.map(expr, processExpr);
 
-				var runtimeClassRef:Ref<ClassType>;
-				for (mod in haxeModules)
-				{
-					switch (mod)
-					{
-						case TClassDecl(c):
-							var cls = c.get();
-							if (cls.name == "Runtime" && ArrayHelper.equals(cls.pack, ["rlua"]))
-							{
-								runtimeClassRef = c;
-								break;
-							}
-						case _:
-					}
+			var runtimeClassRef:Null<Ref<ClassType>> = null;
+			for(mod in Context.getModule("rlua.Runtime")) {
+				switch(mod) {
+					case TInst(c, _): runtimeClassRef = c;
+					case _:
 				}
+			}
 
-				var buildMultiReturnField:Ref<ClassField>;
-				for (f in runtimeClassRef.get().statics.get())
-				{
-					if (f.name == "buildMultiReturn")
-					{
-						buildMultiReturnField = cast {
-							get: () -> f,
-							toString: () -> Std.string(f)
-						};
-						break;
-					}
-				}
+			var runtimeClassRefVal = NullHelper.trustMe(runtimeClassRef);
 
-				return {
-					expr: TCall({
-						expr: TField({
-							expr: TTypeExpr(TClassDecl(runtimeClassRef)),
-							pos: expr.pos,
-							t: expr.t
-						}, FStatic(runtimeClassRef, buildMultiReturnField)),
+			var buildMultiReturnField = cast {
+				get: () -> ({
+					name: "BuildMultiReturn",
+					type: TFun([{ name: "n", opt: false, t: TDynamic(null) }], TDynamic(null)),
+					pos: expr.pos,
+					meta: {
+						has: function(_) return false,
+						get: function() return [],
+						extract: function(_) return [],
+						add: function(_, _, _) {},
+						remove: function(_) return false,
+					},
+					kind: FMethod(MethNormal),
+					params: [],
+					overloads: null,
+					expr: function():Null<TypedExpr> return null,
+					doc: null,
+					isPublic: true,
+					isExtern: true,
+					isFinal: false,
+					isAbstract: false,
+				}: ClassField),
+				toString: () -> "BuildMultiReturn",
+			};
+
+			return {
+				expr: TCall({
+					expr: TField({
+						expr: TTypeExpr(TClassDecl(runtimeClassRefVal)),
 						pos: expr.pos,
 						t: expr.t
-					}, [
-						{
-							expr: TArrayDecl(multiReturnType.get().fields.get().map((f) -> {
-								expr: TConst(TString(f.name)),
-								pos: expr.pos,
-								t: expr.t
-							})),
-							pos: expr.pos,
-							t: expr.t
-						},
-						{
-							expr: TCall(e, el),
-							pos: expr.pos,
-							t: expr.t
-						}
-					]),
+					}, FStatic(runtimeClassRefVal, buildMultiReturnField)),
 					pos: expr.pos,
 					t: expr.t
-				};
+				}, [
+					{
+						expr: TArrayDecl(NullHelper.trustMe(multiReturnType).get().fields.get().map((f) -> {
+							expr: TConst(TString(f.name)),
+							pos: expr.pos,
+							t: expr.t
+						})),
+						pos: expr.pos,
+						t: expr.t
+					},
+					{
+						expr: TCall(e, el),
+						pos: expr.pos,
+						t: expr.t
+					}
+				]),
+				pos: expr.pos,
+				t: expr.t
+			};
 
 			default:
 				return TypedExprTools.map(expr, processExpr);
