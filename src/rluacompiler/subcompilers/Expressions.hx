@@ -30,6 +30,140 @@ class Expressions extends SubCompiler
 			case _: null;
 		}
 
+	function isRestType(t:Type):Bool
+	{
+		if (t == null)
+			return false;
+
+		return switch (t)
+		{
+			case TMono(inner): var resolved = inner == null ? null : inner.get(); resolved != null && isRestType(resolved);
+			case TType(typeDef, _):
+				isRestType(typeDef.get().type);
+			case TAbstract(typeDef, _): var abstractType = typeDef.get(); abstractType.name == "Rest" && (ArrayHelper.equals(abstractType.pack, ["haxe"])
+					|| ArrayHelper.equals(abstractType.pack, ["haxe", "extern"]));
+			case TInst(typeDef, _): var classType = typeDef.get(); classType.name == "Rest" && (ArrayHelper.equals(classType.pack, ["haxe"])
+					|| ArrayHelper.equals(classType.pack, ["haxe", "extern"]));
+			case _:
+				false;
+		}
+	}
+
+	function extractRestArgs(expr:TypedExpr):Null<Array<TypedExpr>>
+		return switch (expr.expr)
+		{
+			case TArrayDecl(args):
+				args;
+			case TParenthesis(inner):
+				extractRestArgs(inner);
+			case _:
+				null;
+		}
+
+	function resolveFunctionType(t:Type):Null<Type>
+	{
+		if (t == null)
+			return null;
+
+		return switch (t)
+		{
+			case TFun(_, _):
+				t;
+			case TMono(inner):
+				var resolved = inner == null ? null : inner.get();
+				resolveFunctionType(resolved);
+			case TType(typeDef, _):
+				resolveFunctionType(typeDef.get().type);
+			case TLazy(f):
+				resolveFunctionType(f());
+			case _:
+				null;
+		}
+	}
+
+	function inferFunctionType(callExpr:TypedExpr):Null<Type>
+	{
+		if (callExpr == null)
+			return null;
+
+		return switch (callExpr.expr)
+		{
+			case TLocal(v):
+				v.t;
+			case TField(_, fieldAccess):
+				switch (fieldAccess)
+				{
+					case FInstance(_, _, cf): cf.get().type;
+					case FStatic(_, cf): cf.get().type;
+					case FAnon(cf): cf.get().type;
+					case FClosure(_, cf): cf.get().type;
+					case FEnum(_, ef): ef.type;
+					case FDynamic(_): null;
+				}
+			case TParenthesis(inner):
+				inferFunctionType(inner);
+			case TCast(inner, _):
+				inferFunctionType(inner);
+			case TFunction(tfunc):
+				tfunc.t;
+			case _:
+				null;
+		}
+	}
+
+	function shouldUnpackRestArg(arg:TypedExpr):Bool
+	{
+		if (arg == null)
+			return false;
+
+		if (extractRestArgs(arg) != null)
+			return false;
+
+		if (isRestType(arg.t))
+			return true;
+
+		return isArrayType(arg.t);
+	}
+
+	function compileCallArgs(callExpr:TypedExpr, args:Array<TypedExpr>, compileArg:TypedExpr->String):Array<String>
+	{
+		var compiledArgs:Array<String> = [];
+		var callType = callExpr == null ? null : callExpr.t;
+		if (callType == null)
+			callType = inferFunctionType(callExpr);
+		callType = resolveFunctionType(callType);
+		if (callType == null)
+			return args.map(arg -> compileArg(arg));
+
+		switch (callType)
+		{
+			case TFun(fnArgs, _):
+				if (fnArgs.length > 0 && isRestType(fnArgs[fnArgs.length - 1].t) && args.length >= fnArgs.length)
+				{
+					var restIndex = fnArgs.length - 1;
+					for (i in 0...restIndex)
+						compiledArgs.push(compileArg(args[i]));
+
+					var restArgs = extractRestArgs(args[restIndex]);
+					if (restArgs != null)
+						for (restArg in restArgs)
+							compiledArgs.push(compileArg(restArg));
+					else if (args.length == fnArgs.length && shouldUnpackRestArg(args[restIndex]))
+						compiledArgs.push('unpack(${compileArg(args[restIndex])})');
+					else
+						compiledArgs.push(compileArg(args[restIndex]));
+
+					for (i in restIndex + 1...args.length)
+						compiledArgs.push(compileArg(args[i]));
+
+					return compiledArgs;
+				}
+			case _:
+		}
+
+		return args.map(arg -> compileArg(arg));
+	}
+
 	var exprDepth:Int = 0;
 
 	public function compileExpressionImpl(expr:TypedExpr, depth:Int, ?previous:TypedExpr):Null<String>
@@ -250,7 +384,7 @@ class Expressions extends SubCompiler
 				if (field == "__super__")
 					field += ".__constructor";
 
-				var args = el.map(arg -> exprImpl(arg));
+				var args = compileCallArgs(e, el, arg -> exprImpl(arg));
 				if (isSuperCall)
 					args.insert(0, "self");
 				exprDepth--;
@@ -322,13 +456,7 @@ class Expressions extends SubCompiler
 
 			case TFunction(tfunc):
 				var buff:CodeBuf = new CodeBuf();
-				var args = tfunc.args.map(arg -> switch (arg.v.t)
-				{
-					case TInst(t, _) if (t.get().name == "Rest" && ArrayHelper.equals(t.get().pack, ["haxe"])):
-						"...";
-					default:
-						arg.v.name;
-				});
+				var args = tfunc.args.map(arg -> isRestType(arg.v.t) ? "..." : arg.v.name);
 				var body = exprImpl(tfunc.expr, 1);
 
 				buff += '(function(${args.join(", ")})${buff.enter}';
