@@ -14,6 +14,9 @@ class CompilerInit
 	public static final COMPILER_CLASS:Class<Dynamic> = Compiler;
 	public static final COMPILER_OPTIONS:BaseCompilerOptions = {
 		expressionPreprocessors: [
+			Custom(new IteratorFix([
+				{abstractModule: "haxe.ds.Map"}
+			])),
 			SanitizeEverythingIsExpression({
 				convertIncrementAndDecrementOperators: true,
 				convertNullCoalescing: false, // true
@@ -28,6 +31,7 @@ class CompilerInit
 			// RemoveTemporaryVariables(AllOneUseVariables),
 			RemoveTemporaryVariables(AllTempVariables),
 			MarkUnusedVariables,
+			RemovePureExpressions,
 			Custom(new ConvertBitwiseOperators(LuaVUtils.bitFuncPattern, LuaVUtils.bitFuncField)),
 			Custom(new Lua51LoopContinuePatch()),
 			Custom(new LuaMultiReturnPatch()),
