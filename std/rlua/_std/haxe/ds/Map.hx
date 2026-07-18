@@ -27,7 +27,10 @@ import haxe.ds.IntMap;
 import haxe.ds.ObjectMap;
 import haxe.ds.EnumValueMap;
 import haxe.Constraints.IMap;
-import rlua.MapTools;
+import haxe.iterators.ArrayIterator;
+import haxe.iterators.DynamicAccessIterator;
+import haxe.iterators.DynamicAccessKeyValueIterator;
+import rlua.Table;
 
 /**
 	Map allows key to value mapping for arbitrary value types, and many key
@@ -45,146 +48,112 @@ import rlua.MapTools;
 
 	@see https://haxe.org/manual/std-Map.html
 **/
-@:transitive
-extern abstract Map<K, V>(IMap<K, V>)
+@:runtimeValue abstract Map<K, V>(TableMap<K, V>)
 {
-	/**
-		Creates a new Map.
-
-		This becomes a constructor call to one of the specialization types in
-		the output. The rules for that are as follows:
-
-		1. if `K` is a `String`, `haxe.ds.StringMap` is used
-		2. if `K` is an `Int`, `haxe.ds.IntMap` is used
-		3. if `K` is an `EnumValue`, `haxe.ds.EnumValueMap` is used
-		4. if `K` is any other class or structure, `haxe.ds.ObjectMap` is used
-		5. if `K` is any other type, it causes a compile-time error
-
-		(Cpp) Map does not use weak keys on `ObjectMap` by default.
-	**/
 	public inline function new()
+		this = untyped {};
+
+	@:from
+	public static inline function fromTable<K, V>(t:LuaTable<K, V>):Map<K, V>
+		return cast t;
+
+	@:to
+	public inline function toTable():LuaTable<K, V>
+		return cast this;
+
+	@:from
+	public static inline function fromArray<V>(a:Array<V>):Map<Int, V>
+		return cast a;
+
+	@:to
+	public inline function toArray():Array<V>
+		return cast this;
+
+	@:from
+	public static inline function fromDynamic<K, V>(d:Dynamic<V>):Map<K, V>
+		return cast d;
+
+	@:to
+	public inline function toDynamic():Dynamic<V>
+		return cast this;
+
+	@:arrayAccess
+	public inline function get(k:K):Null<V>
+		return untyped this[k];
+
+	@:arrayAccess
+	public inline function set(k:K, v:V):Void
+		return untyped this[k] = v;
+
+	public inline function exists(k:K):Bool
+		return k == null || untyped this[k] != null;
+
+	public function remove(k:K):Bool
 	{
-		untyped this = {};
+		if (!exists(k))
+			return false;
+		untyped this[k] = null;
+		return true;
 	}
 
-	/**
-		Maps `key` to `value`.
-
-		If `key` already has a mapping, the previous value disappears.
-
-		If `key` is `null`, the result is unspecified.
-	**/
-	public inline function set(key:K, value:V)
-		untyped this[key] = value;
-
-	/**
-		Returns the current mapping of `key`.
-
-		If no such mapping exists, `null` is returned.
-
-		Note that a check like `map.get(key) == null` can hold for two reasons:
-
-		1. the map has no mapping for `key`
-		2. the map has a mapping with a value of `null`
-
-		If it is important to distinguish these cases, `exists()` should be
-		used.
-
-		If `key` is `null`, the result is unspecified.
-	**/
-	@:arrayAccess public inline function get(key:K):V
-		return untyped this[key];
-
-	/**
-		Returns true if `key` has a mapping, false otherwise.
-
-		If `key` is `null`, the result is unspecified.
-	**/
-	public inline function exists(key:K)
-		return untyped this[key] != null;
-
-	/**
-		Removes the mapping of `key` and returns true if such a mapping existed,
-		false otherwise.
-
-		If `key` is `null`, the result is unspecified.
-	**/
-	public inline function remove(key:K):Bool
-		return MapTools.remove(this, key);
-
-	/**
-		Returns an Iterator over the keys of `this` Map.
-
-		The order of keys is undefined.
-	**/
 	public inline function keys():Iterator<K>
 	{
-		var cur = next(this, null).index;
-		return {
-			next: function()
-			{
-				var ret = cur;
-				cur = next(this, cur).index;
-				return cast ret;
-			},
-			hasNext: function() return cur != null
-		}
+		var r = [];
+		untyped __lua__("for k in pairs({0}) do table.insert({1}, k) end", this, r);
+		return new ArrayIterator(r);
 	}
 
-	/**
-		Returns an Iterator over the values of `this` Map.
-
-		The order of values is undefined.
-	**/
 	public inline function iterator():Iterator<V>
 	{
-		var it = this.keys();
+		var itr = keys();
 		return untyped {
-			hasNext: function() return it.hasNext(),
-			next: function() return this.get(it.next())
+			hasNext: itr.hasNext,
+			next: function() return h[itr.next()]
 		};
 	}
 
-	/**
-		Returns an Iterator over the keys and values of `this` Map.
-
-		The order of values is undefined.
-	**/
 	public inline function keyValueIterator():KeyValueIterator<K, V>
 	{
 		return new haxe.iterators.MapKeyValueIterator(this);
 	}
 
-	/**
-		Returns a shallow copy of `this` map.
+	public inline function copy():IMap<K, V>
+		return Reflect.copy(this);
 
-		The order of values is undefined.
-	**/
-	public inline function copy():Map<K, V>
+	public function toString():String
 	{
-		var copied = new Map<Dynamic, Dynamic>();
-		for (key in this.keys())
-			copied.set(key, this.get(key));
-		return cast copied;
+		var s = new StringBuf();
+		s.add("[");
+		var it = keys();
+		for (i in it)
+		{
+			s.add(i);
+			s.add(" => ");
+			s.add(Std.string(get(i)));
+			if (it.hasNext())
+				s.add(", ");
+		}
+		s.add("]");
+		return s.toString();
 	}
 
-	/**
-		Returns a String representation of `this` Map.
-
-		The exact representation depends on the platform and key-type.
-	**/
-	public inline function toString():String
-		return MapTools.stringifyMap(this);
-
-	/**
-		Removes all keys from `this` Map.
-	**/
-	public inline function clear():Void
-		untyped __lua__("{0} = {}", this);
-
-	@:arrayAccess @:noCompletion public inline function arrayWrite(k:K, v:V):V
+	public function clear():Void
 	{
-		this.set(k, v);
-		return v;
+		untyped __lua__("for k, _ in pairs({0}) do {0}[k] = nil end", this);
 	}
+}
+
+extern class TableMap<K, V> extends LuaTable<K, V> implements IMap<K, V>
+{
+	function new();
+	function get(k:K):Null<V>;
+	function set(k:K, v:V):Void;
+	function exists(k:K):Bool;
+	function remove(k:K):Bool;
+	function keys():Iterator<K>;
+	function iterator():Iterator<V>;
+	function keyValueIterator():KeyValueIterator<K, V>;
+	function copy():IMap<K, V>;
+	function toString():String;
+	function clear():Void;
 }

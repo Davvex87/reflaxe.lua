@@ -32,32 +32,25 @@ class Std
 				return untyped type(v) == "thread";
 			case "userdata":
 				return untyped type(v) == "userdata";
-			case "table":
+			case "table" if (getmetatable(v) == null):
 				return untyped type(v) == "table" && untyped getmetatable(v) == null;
 			default:
-				if (v != null && untyped (type(v)) == "table" && untyped (type(t)) == "table")
-				{
-					if (Runtime.isClass(t) || Runtime.isInterface(t))
-					{
-						if (Runtime.isInstance(v))
-							return extendsOrImplements(untyped v.__class__, t);
-						else if (Runtime.isClass(v))
-							return extendsOrImplements(v, t);
-					}
-					else if (Runtime.isEnum(t) && Runtime.isEnumIndex(v))
-						return untyped v.__enum__ == t;
-					else
-					{
-						untyped __lua__('
-local compatible = true
+				if (v != null && type(v) == "table" && type(t) == "table") {
+					if (extendsOrImplements(untyped v.__class__, t))
+						return true;
+			
+					if (untyped v.__enum__ == t)
+						return true;
+
+					var compatible = true;
+					untyped __lua__('
 for k, _ in pairs(t) do
 	if v[k] == nil then
-		compatible = false
+	{0} = false
 		break
 	end
-end');
-						return untyped compatible;
-					}
+end', compatible);
+					return compatible;
 				}
 				return false;
 		}
@@ -79,7 +72,7 @@ end');
 	public static inline function parseInt(x:String):Null<Int>
 		return int(untyped tonumber(x));
 
-	static function parseFloat(x:String):Float
+	public static inline function parseFloat(x:String):Float
 		return untyped tonumber(x);
 
 	public static inline function random(x:Int):Int

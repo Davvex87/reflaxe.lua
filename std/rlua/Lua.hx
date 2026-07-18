@@ -22,10 +22,10 @@
 
 package rlua;
 
-import haxe.Constraints.IMap;
 import haxe.extern.Rest;
 import haxe.Constraints.Function;
 import haxe.extern.Rest;
+import rlua.Table;
 
 @:native("")
 extern class Lua
@@ -52,7 +52,7 @@ extern class Lua
 		Returns the metatable of the given table.
 	**/
 	@:native("getmetatable")
-	static function getmetatable(tbl:Map<Dynamic, Dynamic>):Map<Dynamic, Dynamic>;
+	static function getmetatable(tbl:LuaTable<Dynamic, Dynamic>):LuaTable<Dynamic, Dynamic>;
 
 	/**
 		Returns the provided code as a function that can be executed.
@@ -70,19 +70,19 @@ extern class Lua
 		An iterator function for use in for loops.
 	**/
 	@:native("next")
-	static function next<K, V>(k:IMap<K, V>, ?i:K):NextResult<K, V>;
+	static function next<K, V>(k:LuaTable<K, V>, ?i:K):NextResult<K, V>;
 
 	/**
 		Returns an iterator function and the provided table for use in a for loop.
 	**/
 	@:native("pairs")
-	static function pairs<K, V>(t:IMap<K, V>):PairsResult<K, V>;
+	static function pairs<K, V>(t:LuaTable<K, V>):PairsResult<K, V>;
 
 	/**
 		Returns an iterator function and the provided table for use in a for loop.
 	**/
 	@:native("ipairs")
-	static function ipairs<K, V>(t:IMap<K, V>):IPairsResult<K, V>;
+	static function ipairs<K, V>(t:LuaTable<K, V>):IPairsResult<K, V>;
 
 	/**
 		Runs the provided function and catches any error it throws, returning the function's success and its results.
@@ -106,19 +106,19 @@ extern class Lua
 		Gets the real value of table[index], bypassing any metamethods.
 	**/
 	@:native("rawget")
-	static function rawget<K, V>(t:Map<K, V>, k:K):V;
+	static function rawget<K, V>(t:LuaTable<K, V>, k:K):V;
 
 	/**
 		Returns the length of the string or table, bypassing any metamethods.
 	**/
 	@:native("rawlen")
-	static function rawlen(t:Map<Dynamic, Dynamic>):Int;
+	static function rawlen(t:LuaTable<Dynamic, Dynamic>):Int;
 
 	/**
 		Sets the real value of table[index], bypassing any metamethods.
 	**/
 	@:native("rawset")
-	static function rawset<K, V>(t:Map<K, V>, k:K, v:V):Void;
+	static function rawset<K, V>(t:LuaTable<K, V>, k:K, v:V):Void;
 
 	/**
 		Returns the value that was returned by the given ModuleScript, running it if it has not been run yet.
@@ -136,7 +136,7 @@ extern class Lua
 		Sets the given table's metatable.
 	**/
 	@:native("setmetatable")
-	static function setmetatable(tbl:Dynamic, mtbl:Dynamic):Dynamic;
+	static function setmetatable(tbl:LuaTable<Dynamic, Dynamic>, mtbl:LuaTable<Dynamic, Dynamic>):LuaTable<Dynamic, Dynamic>;
 
 	/**
 		Returns the provided value converted to a number, or nil if impossible.
@@ -161,7 +161,7 @@ extern class Lua
 	**/
 	@:native("unpack")
 	// @:nativeFunctionCode("unpack({arg0}, {arg1}, {arg2})")
-	static function unpack(list:Array<Dynamic>, ?i:Int, ?j:Int):Dynamic;
+	static function unpack(list:LuaTable<Dynamic, Dynamic>, ?i:Int, ?j:Int):Dynamic;
 
 	/**
 		Similar to pcall() except it uses a custom error handler.
@@ -173,7 +173,7 @@ extern class Lua
 		A table that is shared between all scripts of the same context level.
 	**/
 	@:native("_G")
-	static var _G:IMap<Dynamic, Dynamic>;
+	static var _G:LuaTable<Dynamic, Dynamic>;
 
 	/**
 		A global variable that holds a string containing the current interpreter version.
@@ -185,16 +185,16 @@ extern class Lua
 @:multiReturn
 extern class IPairsResult<K, V>
 {
-	var next:Map<K, V>->Int->NextResult<Int, V>;
-	var table:Map<K, V>;
+	var next:LuaTable<K, V>->Int->NextResult<Int, V>;
+	var table:LuaTable<K, V>;
 	var index:Int;
 }
 
 @:multiReturn
 extern class PairsResult<K, V>
 {
-	var next:Map<K, V>->K->NextResult<K, V>;
-	var table:Map<K, V>;
+	var next:LuaTable<K, V>->K->NextResult<K, V>;
+	var table:LuaTable<K, V>;
 	var index:K;
 }
 
