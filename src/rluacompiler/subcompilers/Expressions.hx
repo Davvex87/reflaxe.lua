@@ -14,6 +14,7 @@ import haxe.macro.TypedExprTools;
 import reflaxe.helpers.ArrayHelper;
 
 using rluacompiler.utils.ModuleUtils;
+using reflaxe.helpers.TypedExprHelper;
 using StringTools;
 
 class Expressions extends SubCompiler
@@ -247,6 +248,13 @@ class Expressions extends SubCompiler
 							finalV = '${exprImpl(e1)} = ${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
 						exprDepth--;
 						return finalV;
+					case OpAssign if (getAssignTarget(e2) != null):
+						var target = getAssignTarget(e2);
+						var finalV = null;
+						exprDepth++;
+						finalV = '${exprImpl(e2)}\n${exprImpl(e1)} = ${exprImpl(target)}';
+						exprDepth--;
+						return finalV;
 					default:
 						var opFnCall = getOpProxy(op);
 						var finalV = null;
@@ -270,10 +278,12 @@ class Expressions extends SubCompiler
 						var accessor = switch (field.kind)
 						{
 							case FMethod(_) if (!e.expr.match(TConst(TSuper))):
-								if (previous != null) switch (previous.expr) {
+								if (previous != null) switch (previous.expr)
+								{
 									case TBinop(OpAssign, e1, _) | TBinop(OpAssignOp(_), e1, _) if (e1 == expr): ".";
 									default: ":";
-								} else ":";
+								}
+								else ":";
 							case FVar(_, _): ".";
 							default: ".";
 						}
@@ -299,10 +309,12 @@ class Expressions extends SubCompiler
 						var accessor = switch (cf.get().kind)
 						{
 							case FMethod(_) if (!e.expr.match(TConst(TSuper))):
-								if (previous != null) switch (previous.expr) {
+								if (previous != null) switch (previous.expr)
+								{
 									case TBinop(OpAssign, e1, _) | TBinop(OpAssignOp(_), e1, _) if (e1 == expr): ".";
 									default: ":";
-								} else ":";
+								}
+								else ":";
 							case FVar(_, _): ".";
 							default: ".";
 						}
@@ -465,11 +477,25 @@ class Expressions extends SubCompiler
 			case TFunction(tfunc):
 				var buff:CodeBuf = new CodeBuf();
 				var args = tfunc.args.map(arg -> isRestType(arg.v.t) ? "..." : arg.v.name);
-				if (previous != null) switch (previous.expr) {
-					case TBinop(OpAssign, e1, _) if (isMethodField(e1)): args.unshift("self");
-					default:
-				}
+				if (previous != null)
+					switch (previous.expr)
+					{
+						case TBinop(OpAssign, e1, _) if (isMethodField(e1)): args.unshift("self");
+						default:
+					}
 				var body = exprImpl(tfunc.expr, 1);
+
+				var defaultValInit = "";
+				for (arg in tfunc.args)
+				{
+					if (arg.value != null && !arg.value.isNullExpr())
+					{
+						var argName = compileVarName(arg.v.name);
+						var defaultExpr = exprImpl(arg.value);
+						defaultValInit += 'if (${argName} == nil) then ${argName} = ${defaultExpr}; end\n';
+					}
+				}
+				body = defaultValInit + body;
 
 				buff += '(function(${args.join(", ")})${buff.enter}';
 				buff += body;
@@ -506,7 +532,9 @@ class Expressions extends SubCompiler
 					exprDepth += curDepth;
 					return compiled;
 					// return alreadyHasBlock ? compiled : indent(depth + 1) + compiled;
-				});
+				}).filter(s -> s != null && s != "");
+
+				statements = statements.map(s -> s.endsWith(";") ? s : '$s;');
 
 				if (statements.length < 1)
 					return "";
@@ -760,15 +788,19 @@ class Expressions extends SubCompiler
 
 	public function isMethodField(expr:Null<TypedExpr>):Bool
 	{
-		if (expr == null) return false;
-		return switch (expr.expr) {
-			case TField(_, fa): switch (fa) {
-				case FInstance(_, _, cf) | FAnon(cf): switch (cf.get().kind) {
-					case FMethod(_): true;
+		if (expr == null)
+			return false;
+		return switch (expr.expr)
+		{
+			case TField(_, fa): switch (fa)
+				{
+					case FInstance(_, _, cf) | FAnon(cf): switch (cf.get().kind)
+						{
+							case FMethod(_): true;
+							default: false;
+						}
 					default: false;
 				}
-				default: false;
-			}
 			default: false;
 		};
 	}
@@ -885,6 +917,16 @@ class Expressions extends SubCompiler
 			case TAbstract(t, _):
 				t.get().meta;
 		}
+
+	function getAssignTarget(e:TypedExpr):Null<TypedExpr>
+	{
+		return switch (e.expr)
+		{
+			case TBinop(OpAssign | OpAssignOp(_), left, _): left;
+			case TParenthesis(inner) | TMeta(_, inner): getAssignTarget(inner);
+			default: null;
+		}
+	}
 
 	public function compileOperatorImpl(op:Binop, e1:TypedExpr, e2:TypedExpr)
 	{
