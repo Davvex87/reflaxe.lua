@@ -47,6 +47,22 @@ class Compiler extends DirectToStringCompiler
 	// public var importWrapperClassStr:Null<String> = null;
 	public var runtimeConfig:RuntimeConfig;
 
+	/**
+		Builds the `local A, B, C = unpack(require("mod"))` line for a module.
+		Every declaration of the module must be listed (in order) since the
+		module returns all of them, even when only one is needed.
+	**/
+	function resolveModuleImport(moduleId:String):String
+	{
+		final ts = typesPerModule.get(moduleId) ?? [];
+		return runtimeConfig.resolveImport(ts.map(t ->
+		{
+			if (t.meta.has(":luaRequire"))
+				return "_";
+			return t.name;
+		}), moduleId);
+	}
+
 	function addTypesToMod(baseModule:String, types:Array<BaseType>)
 	{
 		var st = usedTypesPerModule.get(baseModule);
@@ -322,12 +338,7 @@ class Compiler extends DirectToStringCompiler
 				var ts = typesPerModule.get(m);
 				if (ts == null || ts.length == 0)
 					continue;
-				imports.push(runtimeConfig.resolveImport(ts.map(t ->
-				{
-					if (t.meta.has(":luaRequire"))
-						return "_";
-					return t.name;
-				}), m));
+				imports.push(resolveModuleImport(m));
 			}
 
 			head.push(imports.join("\n"));
@@ -361,7 +372,7 @@ class Compiler extends DirectToStringCompiler
 			if (isMainModule)
 			{
 				if (!usedTypes.exists("haxe.EntryPoint"))
-					finalOutputList.push(runtimeConfig.resolveImport(["EntryPoint"], "haxe.EntryPoint"));
+					finalOutputList.push(resolveModuleImport("haxe.EntryPoint"));
 				finalOutputList.push(entryCode);
 			}
 			else
