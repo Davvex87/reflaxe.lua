@@ -21,6 +21,7 @@ class CompilerInit
 	public static final COMPILER_OPTIONS:BaseCompilerOptions = {
 		expressionPreprocessors: [
 			Custom(new IteratorFix([{abstractModule: "haxe.ds.Map"}])),
+			Custom(new ShortCircuitFix()),
 			SanitizeEverythingIsExpression({
 				convertIncrementAndDecrementOperators: true,
 				convertNullCoalescing: false, // true
