@@ -1,5 +1,5 @@
 -D rlua
--D lua
+-D Lua
 -dce no
 --macro nullSafety("rluacompiler")
 --macro nullSafety("reflaxe")
