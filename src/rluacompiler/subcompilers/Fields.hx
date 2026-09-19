@@ -8,6 +8,7 @@ import reflaxe.data.EnumOptionData;
 import reflaxe.helpers.ArrayHelper;
 import haxe.macro.Type;
 
+using reflaxe.helpers.TypedExprHelper;
 using StringTools;
 
 class Fields extends SubCompiler
@@ -87,6 +88,18 @@ class Fields extends SubCompiler
 			if (func.expr != null)
 				bodyCode = main.expressionsSubCompiler.compileExpressionImpl(func.expr, 0);
 		}
+
+		var defaultValInit = "";
+		for (arg in func.args)
+		{
+			if (arg.expr != null && !arg.expr.isNullExpr())
+			{
+				var argName = main.compileVarName(arg.getName());
+				var defaultExpr = main.expressionsSubCompiler.compileExpressionImpl(arg.expr, 0);
+				defaultValInit += 'if (${argName} == nil) then ${argName} = ${defaultExpr}; end\n';
+			}
+		}
+		bodyCode = defaultValInit + bodyCode;
 
 		if (restArgs.length > 0)
 			for (i in 0...restArgs.length)
