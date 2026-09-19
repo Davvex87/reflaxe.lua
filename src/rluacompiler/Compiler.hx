@@ -242,6 +242,24 @@ class Compiler extends DirectToStringCompiler
 		return null;
 	}
 
+	/**
+		Reorder output so that enums come first and classes last.
+	**/
+	@:privateAccess
+	override public function generateOutputIterator():Iterator<reflaxe.output.DataAndFileInfo<StringOrBytes>>
+	{
+		final all = enums.concat(classes).concat(typedefs).concat(abstracts);
+		var index = 0;
+		return {
+			hasNext: () -> index < all.length,
+			next: () ->
+			{
+				final data = all[index++];
+				return data.withOutput(data.data);
+			}
+		};
+	}
+
 	override public function generateFilesManually():Void @:privateAccess {
 		output.ensureOutputDirExists();
 
