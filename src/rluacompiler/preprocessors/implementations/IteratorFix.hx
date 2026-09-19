@@ -50,7 +50,8 @@ class IteratorFix extends BasePreprocessor
 						var abs = absRef.get();
 						if (abs.impl == null) continue;
 
-						var implClass = abs.impl.get();
+						var implRef = abs.impl;
+						var implClass = implRef.get();
 
 						var interfaceModules = config.interfaceModules;
 						if (interfaceModules == null)
@@ -67,6 +68,7 @@ class IteratorFix extends BasePreprocessor
 							if (!implClassCache.exists(ifaceModule))
 							{
 								implClassCache.set(ifaceModule, {
+									implRef: implRef,
 									implClass: implClass,
 									implName: implName
 								});
@@ -196,6 +198,38 @@ class IteratorFix extends BasePreprocessor
 
 	function buildStaticCall(entry:ImplEntry, methodName:String, obj:TypedExpr, args:Array<TypedExpr>, resultType:Type, pos:Position):TypedExpr
 	{
+		var cf:Null<ClassField> = null;
+		for (f in entry.implClass.statics.get())
+			if (f.name == methodName)
+			{
+				cf = f;
+				break;
+			}
+
+		if (cf != null)
+		{
+			final field = cf;
+			var fieldRef:Ref<ClassField> = {
+				get: () -> field,
+				toString: () -> field.name
+			};
+			var typeExpr:TypedExpr = {
+				expr: TTypeExpr(TClassDecl(entry.implRef)),
+				pos: pos,
+				t: TInst(entry.implRef, [])
+			};
+			var fieldExpr:TypedExpr = {
+				expr: TField(typeExpr, FStatic(entry.implRef, fieldRef)),
+				pos: pos,
+				t: field.type
+			};
+			return {
+				expr: TCall(fieldExpr, [obj].concat(args)),
+				pos: pos,
+				t: resultType
+			};
+		}
+
 		var templateBuf = new StringBuf();
 		templateBuf.add(entry.implName);
 		templateBuf.add(".");
@@ -263,6 +297,7 @@ typedef AbstractRedirectConfig = {
 }
 
 typedef ImplEntry = {
+	var implRef:Ref<ClassType>;
 	var implClass:ClassType;
 	var implName:String;
 }
