@@ -1,9 +1,7 @@
 -D rlua
--D Lua
+-D lua
 -dce no
 --macro nullSafety("rluacompiler")
 --macro nullSafety("reflaxe")
---macro include("rluacompiler.resources")
---macro keep("rluacompiler.resources")
 --macro rluacompiler.macros.CustomMacro.build()
 --macro rluacompiler.CompilerInit.Start()
