@@ -82,21 +82,10 @@ class LuaStringTools
 	}
 
 	#if !roblox
-	static inline function escape_pattern(s)
-		return untyped __lua__('{0}:gsub("([%%%^%$%(%)%.%[%]%*%+%-%?])", "%%%1")', s);
-
 	public static function split(str:String, delim:String):Array<String>
 	{
 		untyped __lua__('
    local t = {}
-
-   -- default: split on whitespace
-   if delim == nil then
-      for s in str:gmatch("%S+") do
-         t[#t + 1] = s
-      end
-      return t
-   end
 
    -- empty separator = split into characters
    if delim == "" then
@@ -106,13 +95,16 @@ class LuaStringTools
       return t
    end
 
-   -- escape separator so it behaves literally
-   delim = {2}(delim)
-
-   local pattern = "([^" .. delim .. "]+)"
-   for s in str:gmatch(pattern) do
-      t[#t + 1] = s
-   end', str, delim, escape_pattern);
+   local pos = 1
+   while true do
+      local s, e = string.find(str, delim, pos, true)
+      if s == nil then
+         t[#t + 1] = str:sub(pos)
+         break
+      end
+      t[#t + 1] = str:sub(pos, s - 1)
+      pos = e + 1
+   end', str, delim);
 		return untyped t;
 	}
 	#else
