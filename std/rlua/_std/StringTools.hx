@@ -130,8 +130,14 @@ class StringTools
 		return buf.toString();
 	}
 
-	public static inline function replace(s:String, sub:String, by:String):String
-		return untyped __lua__("{0}:gsub({1},{2})", s, sub, by);
+	public static function replace(s:String, sub:String, by:String):String
+		return untyped __lua__("({0}:gsub({1}, {2}))", s, escapePattern(sub), escapeReplacement(by));
+
+	static function escapePattern(s:String):String
+		return untyped __lua__("({0}:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]', '%%%0'))", s);
+
+	static function escapeReplacement(s:String):String
+		return untyped __lua__("({0}:gsub('%%', '%%%%'))", s);
 
 	public static function hex(n:Int, ?digits:Int)
 	{
@@ -150,10 +156,10 @@ class StringTools
 	}
 
 	public static inline function fastCodeAt(s:String, index:Int):Int
-		return s.charCodeAt(index);
+		return s.charCodeAt(index) ?? -1;
 
 	public static inline function unsafeCodeAt(s:String, index:Int):Int
-		return s.charCodeAt(index);
+		return s.charCodeAt(index) ?? -1;
 
 	public static inline function iterator(s:String):StringIterator // TODO: Review this
 		return new StringIterator(s);
