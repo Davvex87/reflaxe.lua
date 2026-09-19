@@ -62,6 +62,32 @@ class Classes extends SubCompiler
 			if (properties.length > 0)
 				output += '${classType.name}.__properties__ = {${properties.join(", ")}}\n';
 
+			if (hasInstField)
+			{
+				output += 'function ${classType.name}.new(...)\n';
+				output += '\tlocal self = setmetatable({}, {__index = ${classType.name}; __tostring = function(self) if self["toString"] ~= nil then return self:toString() end return "${classType.name}" end})\n\tself:__constructor(...)\n\treturn self\n';
+				output += 'end\n';
+			}
+
+			for (varf in varFields)
+			{
+				if (!varf.isStatic)
+					continue;
+
+				var expr = varf.expr;
+				if (expr == null)
+					continue;
+
+				output += '${varf.classType.name}.${main.compileVarName(varf.field.name)} = nil\n';
+			}
+
+			for (func in funcFields)
+			{
+				var r = main.fieldsSubCompiler.compileFuncImpl(func);
+				if (r != null)
+					output += r;
+			}
+
 			var inlinesStatics:Array<ClassVarData> = [];
 			for (varf in varFields)
 			{
@@ -76,20 +102,6 @@ class Classes extends SubCompiler
 					output += main.fieldsSubCompiler.compileStaticImpl(varf);
 				else
 					inlinesStatics.push(varf);
-			}
-
-			if (hasInstField)
-			{
-				output += 'function ${classType.name}.new(...)\n';
-				output += '\tlocal self = setmetatable({}, {__index = ${classType.name}; __tostring = function(self) if self["toString"] ~= nil then return self:toString() end return "${classType.name}" end})\n\tself:__constructor(...)\n\treturn self\n';
-				output += 'end\n';
-			}
-
-			for (func in funcFields)
-			{
-				var r = main.fieldsSubCompiler.compileFuncImpl(func);
-				if (r != null)
-					output += r;
 			}
 
 			if (inlinesStatics.length > 0)
