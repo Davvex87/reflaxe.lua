@@ -899,21 +899,22 @@ class Expressions extends SubCompiler
 		return switch (t)
 		{
 			case TMono(ty):
-				getTypeMetadatas(ty.get());
+				final inner = ty.get();
+				if (inner == null) null; else getTypeMetadatas(inner);
 			case TEnum(t, _):
 				t.get().meta;
 			case TInst(t, _):
 				t.get().meta;
 			case TType(t, _):
-				t.get().meta;
+				getTypeMetadatas(t.get().type);
 			case TFun(_, _):
 				null;
 			case TAnonymous(_):
 				null;
 			case TDynamic(ty):
 				if (ty == null) null; else getTypeMetadatas(ty);
-			case TLazy(_):
-				null;
+			case TLazy(f):
+				getTypeMetadatas(f());
 			case TAbstract(t, _):
 				t.get().meta;
 		}
