@@ -145,6 +145,7 @@ import rlua.Table;
 
 extern class TableMap<K, V> extends LuaTable<K, V> implements IMap<K, V>
 {
+	@:nativeFunctionCode("{}")
 	function new();
 	function get(k:K):Null<V>;
 	function set(k:K, v:V):Void;

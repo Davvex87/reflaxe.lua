@@ -60,7 +60,8 @@ class FileOutput extends haxe.io.Output
 	override inline public function writeBytes(s:Bytes, pos:Int, len:Int):Int
 	{
 		f.write(s.getString(pos, len));
-		return s.length;
+		var l = s.length;
+		return l;
 	}
 
 	override public function close()

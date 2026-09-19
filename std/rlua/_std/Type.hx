@@ -188,7 +188,7 @@ class Type
 		if (type(c) == "function")
 			return c(unpack(cast params));
 		else
-			return c.index;
+			return c;
 	}
 
 	/**
