@@ -20,16 +20,11 @@ class Lua51LoopContinuePatch extends BasePreprocessor
 
 	public function processExpr(expr:TypedExpr):TypedExpr
 	{
+		expr = TypedExprTools.map(expr, processExpr);
+
 		switch (expr.expr)
 		{
-			case TFor(v, e1, e2):
-				return {
-					expr: processExprInLoop(expr),
-					pos: expr.pos,
-					t: expr.t
-				};
-
-			case TWhile(econd, e, normalWhile):
+			case TFor(_, _, _) | TWhile(_, _, _):
 				return {
 					expr: processExprInLoop(expr),
 					pos: expr.pos,
@@ -37,7 +32,7 @@ class Lua51LoopContinuePatch extends BasePreprocessor
 				};
 
 			default:
-				return TypedExprTools.map(expr, processExpr);
+				return expr;
 		}
 	}
 
@@ -62,7 +57,7 @@ class Lua51LoopContinuePatch extends BasePreprocessor
 					hasContinue = true;
 				case TBreak:
 					hasBreak = true;
-				case TFunction(tfunc):
+				case TFunction(_) | TWhile(_, _, _) | TFor(_, _, _):
 				default:
 					TypedExprTools.iter(expr, exprCheck);
 			}
@@ -192,6 +187,9 @@ class Lua51LoopContinuePatch extends BasePreprocessor
 					pos: expr.pos,
 					t: expr.t
 				};
+
+			case TFunction(_) | TWhile(_, _, _) | TFor(_, _, _):
+				return expr;
 
 			default:
 				return TypedExprTools.map(expr, (f:TypedExpr) -> repExpr(f, breakVar));
