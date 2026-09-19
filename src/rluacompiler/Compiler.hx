@@ -53,7 +53,7 @@ class Compiler extends DirectToStringCompiler
 		var ui:Array<BaseType> = customImports.get(baseModule) ?? [];
 		for (ut in types)
 		{
-			if (ut.meta.has(":customImport"))
+			if (ut.meta.has(":luaRequire"))
 			{
 				if (!ui.contains(ut))
 					ui.push(ut);
@@ -324,7 +324,7 @@ class Compiler extends DirectToStringCompiler
 					continue;
 				imports.push(runtimeConfig.resolveImport(ts.map(t ->
 				{
-					if (t.meta.has(":customImport"))
+					if (t.meta.has(":luaRequire"))
 						return "_";
 					return t.name;
 				}), m));
@@ -334,7 +334,7 @@ class Compiler extends DirectToStringCompiler
 
 			for (_ => cls in customImports.get(moduleId) ?? [])
 			{
-				final e = cls.meta.extract(":customImport")[0].params[0].expr;
+				final e = cls.meta.extract(":luaRequire")[0].params[0].expr;
 				var imp = switch (e)
 				{
 					case EConst(c):

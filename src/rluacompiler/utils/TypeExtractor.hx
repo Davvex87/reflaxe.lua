@@ -21,7 +21,7 @@ class TypeExtractor
 						case FStatic(c, _) | FInstance(c, _, _):
 							var cls = c.get();
 							if ((!cls.isExtern && !cls.meta.has(":native"))
-								|| cls.meta.has(":customImport")) usedTypes.push(cls); else TypedExprTools.iter(e, iter);
+								|| cls.meta.has(":luaRequire")) usedTypes.push(cls); else TypedExprTools.iter(e, iter);
 						case FEnum(e, ef):
 							usedTypes.push(e.get());
 						default:

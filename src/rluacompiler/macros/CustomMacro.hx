@@ -24,13 +24,6 @@ class CustomMacro
 		});
 
 		Compiler.registerCustomMetadata({
-			metadata: ":customImport",
-			doc: "Marks an extern class to be imported with custom code instead of the default reflaxe.lua provides.",
-			params: ["Import code"],
-			targets: [Class],
-		});
-
-		Compiler.registerCustomMetadata({
 			metadata: ":topLevelCall",
 			doc: "Marks a function to be called at the top level automatically at the end of the script.",
 			targets: [ClassField],

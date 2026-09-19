@@ -21,7 +21,7 @@ class UsedTypeCollector
 
 	function shouldInclude(bt:BaseType):Bool
 	{
-		if (bt.meta.has(":customImport"))
+		if (bt.meta.has(":luaRequire"))
 			return true;
 		if (bt.isExtern || bt.meta.has(":native"))
 			return false;
