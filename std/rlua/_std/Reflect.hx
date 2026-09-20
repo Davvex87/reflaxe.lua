@@ -17,7 +17,7 @@ class Reflect
 
 		If `o` or `field` are null, the result is unspecified.
 	**/
-	public static function hasField(o:Dynamic, field:String):Bool untyped
+	public static inline function hasField(o:Dynamic, field:String):Bool untyped
 	{
 		if (o == null || field == null)
 			return false;
@@ -35,7 +35,7 @@ class Reflect
 
 		If `field` is null, the result is unspecified.
 	**/
-	public static function field(o:Dynamic, field:String):Dynamic untyped
+	public static inline function field(o:Dynamic, field:String):Dynamic untyped
 	{
 		if (o == null || field == null)
 			return null;
@@ -50,7 +50,7 @@ class Reflect
 
 		If `o` or `field` are null, the result is unspecified.
 	**/
-	public static function setField(o:Dynamic, field:String, value:Dynamic):Void untyped
+	public static inline function setField(o:Dynamic, field:String, value:Dynamic):Void untyped
 	{
 		o[field] = value;
 	}
@@ -138,7 +138,7 @@ class Reflect
 
 		If `f` is null, the result is false.
 	**/
-	public static function isFunction(f:Dynamic):Bool
+	public static inline function isFunction(f:Dynamic):Bool
 		untyped return type(f) == "function";
 
 	/**
@@ -162,7 +162,7 @@ class Reflect
 		If `a` and `b` are null, the result is 0. If only one of them is null,
 		the result is unspecified.
 	**/
-	public static function compare<T>(a:T, b:T):Int
+	public static inline function compare<T>(a:T, b:T):Int
 	{
 		if (a == b)
 			return 0
@@ -186,7 +186,7 @@ class Reflect
 		If `f1` or `f2` are member method closures, the result is true if they
 		are closures of the same method on the same object value, false otherwise.
 	**/
-	public static function compareMethods(f1:Dynamic, f2:Dynamic):Bool
+	public static inline function compareMethods(f1:Dynamic, f2:Dynamic):Bool
 		return f1 == f2;
 
 	/**
@@ -222,7 +222,7 @@ class Reflect
 
 		If `o` or `field` are null, the result is unspecified.
 	**/
-	public static function deleteField(o:Dynamic, field:String):Bool untyped
+	public static inline function deleteField(o:Dynamic, field:String):Bool untyped
 	{
 		if (!Reflect.hasField(o, field))
 			return false;
