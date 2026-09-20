@@ -1,0 +1,6 @@
+-cp tests/unit/src
+shared
+tests.unit.suites
+
+-D no-deprecation-warnings
+-D no-invalid-expression-warnings

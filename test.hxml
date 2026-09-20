@@ -1,0 +1,4 @@
+tests/unit/base.hxml
+-D lua-output=tests/unit/out
+-lib reflaxe.lua
+-lib reflaxe
