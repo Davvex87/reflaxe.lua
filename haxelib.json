@@ -5,7 +5,6 @@
   "url": "http://github.com/Davvex87/reflaxe.lua",
   "tags": ["reflaxe"],
   "dependencies": {
-    "reflaxe": "4.0.0-beta"
   },
   "classPath": "src/",
   "releasenote": "Support for @:nativeVariableCode",
