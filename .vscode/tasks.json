@@ -1,0 +1,29 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Haxelib",
+      "type": "shell",
+      "command": "haxelib run reflaxe build --deleteOldFolder",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Run tests (lua 5.1)",
+      "type": "shell",
+      "command": "haxe test.hxml -m Test && cd tests/unit/out/ && lua5.1 Test.lua",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always"
+      }
+    }
+  ]
+}
