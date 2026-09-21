@@ -64,6 +64,14 @@ class Compiler extends DirectToStringCompiler
 		}), moduleId);
 	}
 
+	static function containsType(arr:Array<BaseType>, bt:BaseType):Bool
+	{
+		for (t in arr)
+			if (t.equals(bt))
+				return true;
+		return false;
+	}
+
 	function addTypesToMod(baseModule:String, types:Array<BaseType>)
 	{
 		var st = usedTypesPerModule.get(baseModule);
@@ -72,7 +80,7 @@ class Compiler extends DirectToStringCompiler
 		{
 			if (CustomImportUtils.hasCustomImport(ut))
 			{
-				if (!ui.contains(ut))
+				if (!containsType(ui, ut))
 					ui.push(ut);
 			}
 			else
@@ -81,14 +89,7 @@ class Compiler extends DirectToStringCompiler
 				if (!st.exists(mod))
 					st.set(mod, []);
 				var arr = st.get(mod);
-				var found = false;
-				for (t in arr)
-					if (t.equals(ut))
-					{
-						found = true;
-						break;
-					}
-				if (!found)
+				if (!containsType(arr, ut))
 					arr.push(ut);
 			}
 		}
