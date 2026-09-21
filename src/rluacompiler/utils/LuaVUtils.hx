@@ -3,7 +3,7 @@ package rluacompiler.utils;
 #if (macro || rlua_runtime)
 class LuaVUtils
 {
-	public static final bitFuncPattern = #if lua_bit32 "bit32.{op}" #else "bit.{op}" #end;
+	public static final bitClassPackage = "rlua.Bit";
 	public static final bitFuncField:BitwiseOperatorsProxyOptions = {
 		opAnd: "band",
 		opOr: "bor",

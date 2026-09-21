@@ -1,6 +1,7 @@
 package rlua;
 
 @:native(#if lua_bit32 "bit32" #else "bit" #end)
+@:customImport(#if lua_bit32 "bit32 or require(\"bit32\")" #else "bit or require(\"bit\")" #end)
 extern class Bit
 {
 	static function band(a:Int, b:Int, ...rest:Int):Int;
@@ -14,7 +15,6 @@ extern class Bit
 	static function ror(a:Int, n:Int):Int;
 	static function tobit(x:Int):Int;
 	static function tohex(x:Int, ?n:Int):Int;
-
 	// FIXME: this just supports the bit library, gotta add the functions from the bit32 as well
 }
 

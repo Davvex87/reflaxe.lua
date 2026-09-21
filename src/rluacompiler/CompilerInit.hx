@@ -37,7 +37,7 @@ class CompilerInit
 			RemoveTemporaryVariables(AllTempVariables),
 			MarkUnusedVariables,
 			RemovePureExpressions,
-			Custom(new ConvertBitwiseOperators(LuaVUtils.bitFuncPattern, LuaVUtils.bitFuncField)),
+			Custom(new ConvertBitwiseOperators(LuaVUtils.bitClassPackage, LuaVUtils.bitFuncField)),
 			Custom(new Lua51LoopContinuePatch()),
 			Custom(new LuaMultiReturnPatch()),
 			Custom(new ExprBinopFix()),

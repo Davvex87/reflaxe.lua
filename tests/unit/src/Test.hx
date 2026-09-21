@@ -8,6 +8,7 @@ class Test
 		TestUnusedBlockResults.main();
 		TestRunner.runTestSuite(TestStrings);
 		TestRunner.runTestSuite(TestFunctionArguments);
+		TestRunner.runTestSuite(TestBitwiseOperators);
 		// haxe.EntryPoint.run();
 	}
 }

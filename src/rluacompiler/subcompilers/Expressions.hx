@@ -1,7 +1,6 @@
 package rluacompiler.subcompilers;
 
 #if (macro || rlua_runtime)
-import rluacompiler.utils.LuaVUtils;
 import reflaxe.DirectToStringCompiler;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
@@ -19,18 +18,6 @@ using StringTools;
 
 class Expressions extends SubCompiler
 {
-	function getOpProxy(op:Binop):Null<String>
-		return switch (op)
-		{
-			case OpAnd: LuaVUtils.bitFuncField.opAnd;
-			case OpOr: LuaVUtils.bitFuncField.opOr;
-			case OpXor: LuaVUtils.bitFuncField.opXor;
-			case OpShl: LuaVUtils.bitFuncField.opShl;
-			case OpShr: LuaVUtils.bitFuncField.opShr;
-			case OpUShr: LuaVUtils.bitFuncField.opUShr;
-			case _: null;
-		}
-
 	function isRestType(t:Type):Bool
 	{
 		if (t == null)
@@ -239,30 +226,19 @@ class Expressions extends SubCompiler
 				switch (op)
 				{
 					case OpAssignOp(op):
-						var opFnCall = getOpProxy(op);
-						var finalV = null;
 						exprDepth++;
-						if (opFnCall != null)
-							finalV = '${exprImpl(e1)} = ${StringTools.replace(LuaVUtils.bitFuncPattern, "{op}", opFnCall)}(${exprImpl(e1)}, ${exprImpl(e2)})';
-						else
-							finalV = '${exprImpl(e1)} = ${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
+						var finalV = '${exprImpl(e1)} = ${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
 						exprDepth--;
 						return finalV;
 					case OpAssign if (getAssignTarget(e2) != null):
 						var target = getAssignTarget(e2);
-						var finalV = null;
 						exprDepth++;
-						finalV = '${exprImpl(e2)}\n${exprImpl(e1)} = ${exprImpl(target)}';
+						var finalV = '${exprImpl(e2)}\n${exprImpl(e1)} = ${exprImpl(target)}';
 						exprDepth--;
 						return finalV;
 					default:
-						var opFnCall = getOpProxy(op);
-						var finalV = null;
 						exprDepth++;
-						if (opFnCall != null)
-							finalV = '${StringTools.replace(LuaVUtils.bitFuncPattern, "{op}", opFnCall)}(${exprImpl(e1)}, ${exprImpl(e2)})';
-						else
-							finalV = '${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
+						var finalV = '${exprImpl(e1)} ${compileOperatorImpl(op, e1, e2)} ${exprImpl(e2)}';
 						exprDepth--;
 						return finalV;
 				}
@@ -464,9 +440,8 @@ class Expressions extends SubCompiler
 						return finalV;
 
 					case OpNegBits:
-						var finalV = null;
 						exprDepth++;
-						finalV = '${StringTools.replace(LuaVUtils.bitFuncPattern, "{op}", LuaVUtils.bitFuncField.opNegBits)}(${exprImpl(e)})';
+						var finalV = '~${exprImpl(e)}';
 						exprDepth--;
 						return finalV;
 
