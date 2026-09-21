@@ -8,6 +8,7 @@ import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.EnumOptionData;
 import rluacompiler.utils.UsedTypeCollector;
+import rluacompiler.utils.CustomImportUtils;
 import haxe.macro.Context;
 import reflaxe.output.OutputManager;
 import reflaxe.output.StringOrBytes;
@@ -57,7 +58,7 @@ class Compiler extends DirectToStringCompiler
 		final ts = typesPerModule.get(moduleId) ?? [];
 		return runtimeConfig.resolveImport(ts.map(t ->
 		{
-			if (t.meta.has(":luaRequire"))
+			if (CustomImportUtils.hasCustomImport(t))
 				return "_";
 			return t.name;
 		}), moduleId);
@@ -69,7 +70,7 @@ class Compiler extends DirectToStringCompiler
 		var ui:Array<BaseType> = customImports.get(baseModule) ?? [];
 		for (ut in types)
 		{
-			if (ut.meta.has(":luaRequire"))
+			if (CustomImportUtils.hasCustomImport(ut))
 			{
 				if (!ui.contains(ut))
 					ui.push(ut);
@@ -345,20 +346,7 @@ class Compiler extends DirectToStringCompiler
 
 			for (_ => cls in customImports.get(moduleId) ?? [])
 			{
-				final e = cls.meta.extract(":luaRequire")[0].params[0].expr;
-				var imp = switch (e)
-				{
-					case EConst(c):
-						switch (c)
-						{
-							case CString(s):
-								s;
-							default:
-								"_";
-						}
-					default:
-						cls.name;
-				};
+				final imp = CustomImportUtils.resolveCustomImport(cls) ?? cls.name;
 				head.push('local ${cls.name} = ${imp}\n');
 			}
 
