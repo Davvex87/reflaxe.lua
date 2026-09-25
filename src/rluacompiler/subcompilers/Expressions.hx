@@ -253,7 +253,7 @@ class Expressions extends SubCompiler
 						var fname = compileVarName(field.name, e, field);
 						var accessor = switch (field.kind)
 						{
-							case FMethod(_) if (!e.expr.match(TConst(TSuper))):
+							case FMethod(_) if (!e.expr.match(TConst(TSuper)) && !field.meta.has(":luaDotMethod")):
 								if (previous != null) switch (previous.expr)
 								{
 									case TBinop(OpAssign, e1, _) | TBinop(OpAssignOp(_), e1, _) if (e1 == expr): ".";
@@ -284,7 +284,7 @@ class Expressions extends SubCompiler
 						var fname = compileVarName(cf.get().name, e, cf.get());
 						var accessor = switch (cf.get().kind)
 						{
-							case FMethod(_) if (!e.expr.match(TConst(TSuper))):
+							case FMethod(_) if (!e.expr.match(TConst(TSuper)) && !cf.get().meta.has(":luaDotMethod")):
 								if (previous != null) switch (previous.expr)
 								{
 									case TBinop(OpAssign, e1, _) | TBinop(OpAssignOp(_), e1, _) if (e1 == expr): ".";
