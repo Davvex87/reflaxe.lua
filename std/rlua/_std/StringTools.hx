@@ -169,5 +169,5 @@ class StringTools
 
 	@:noUsing
 	public static inline function isEof(c:Null<Int>):Bool
-		return c == null;
+		return c == null || c < 0;
 }
