@@ -499,7 +499,11 @@ class Expressions extends SubCompiler
 					case TSwitch(_, _, _): true;
 					case TTry(_, _): true;
 					default: false;
-				} var statements = el.map(e ->
+				};
+
+				el = truncateAfterTerminator(el);
+
+				var statements = el.map(e ->
 				{
 					var curDepth = exprDepth;
 					exprDepth -= curDepth;
@@ -752,6 +756,27 @@ class Expressions extends SubCompiler
 		}
 	}
 
+	/** Drops every statement after the first `return` or `break` of a block. **/
+	function truncateAfterTerminator(el:Array<TypedExpr>):Array<TypedExpr>
+	{
+		for (i in 0...el.length)
+		{
+			if (isBlockTerminator(el[i]) && i < el.length - 1)
+				return el.slice(0, i + 1);
+		}
+		return el;
+	}
+
+	function isBlockTerminator(expr:TypedExpr):Bool
+	{
+		return switch (expr.expr)
+		{
+			case TReturn(_) | TBreak: true;
+			case TMeta(_, e) | TParenthesis(e): isBlockTerminator(e);
+			case _: false;
+		}
+	}
+
 	public function isEmptyBlock(expr:TypedExpr)
 		return switch (expr.expr)
 		{
@@ -787,6 +812,8 @@ class Expressions extends SubCompiler
 				isArrayType(t.get());
 			case TFun(args, ret):
 				isArrayType(ret);
+			case TAbstract(t1, [inner]) if (isNullAbstract(t1.get())):
+				isArrayType(inner);
 			case TAbstract(t1, params):
 				var impl = t1.get().impl;
 				if (impl == null)
@@ -890,9 +917,16 @@ class Expressions extends SubCompiler
 				if (ty == null) null; else getTypeMetadatas(ty);
 			case TLazy(f):
 				getTypeMetadatas(f());
+			case TAbstract(t, [inner]) if (isNullAbstract(t.get())):
+				getTypeMetadatas(inner);
 			case TAbstract(t, _):
 				t.get().meta;
 		}
+
+	static inline function isNullAbstract(a:AbstractType):Bool
+	{
+		return a.name == "Null" && a.pack.length == 0;
+	}
 
 	function getAssignTarget(e:TypedExpr):Null<TypedExpr>
 	{
