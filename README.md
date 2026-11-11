@@ -123,6 +123,13 @@ How many of Haxe's language features are correctly compiled to their Lua alterna
 
 # Setup
 
+## NOTICE
+Since reflaxe has been stale in updates recently, use my fork:
+```
+git clone -b patched https://github.com/Davvex87/reflaxe.git
+haxelib dev reflaxe ./reflaxe
+```
+
 <a id="installing-the-library"></a>
 
 1. Installing Reflaxe:
@@ -130,7 +137,6 @@ How many of Haxe's language features are correctly compiled to their Lua alterna
 
 2. Installing the library:
   - haxelib: ``haxelib install reflaxe.lua``
-  - github: ``haxelib git reflaxe.lua https://github.com/Davvex87/reflaxe.lua.git``
 
 <a id="adding-to-project"></a>
 
@@ -170,6 +176,16 @@ How many of Haxe's language features are correctly compiled to their Lua alterna
 #   ``soft`` - Performs only fast checks (ideal);
 #   ``full`` - Ensures that type checks return the correct value every time (safest, but heavy);
 #-D lua-safe=<no|soft|full>
+```
+
+# Setup through github
+
+To use reflaxe.lua from git, there are a few extra steps:
+```
+git clone https://github.com/Davvex87/reflaxe.lua.git
+cd ./reflaxe.lua
+haxelib run reflaxe Build
+haxelib dev reflaxe.lua ./_Build
 ```
 
 # Usage
